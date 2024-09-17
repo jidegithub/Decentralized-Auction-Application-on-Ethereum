@@ -96,6 +96,13 @@ module.exports = {
     //   network_id: 2111,   // This network is yours, in the cloud.
     //   production: true    // Treats this network as if it was a public net. (default: false)
     // }
+    //
+    // Ganache local test RPC blockchain
+			network_id: "*",
+			host: "127.0.0.1",
+			port: 7545,
+			gas: 6721975,
+      gasPrice: 20000000000,
   },
 
   // Set default mocha options here, use special reporters, etc.
