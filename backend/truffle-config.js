@@ -97,12 +97,14 @@ module.exports = {
     //   production: true    // Treats this network as if it was a public net. (default: false)
     // }
     //
+    ganache: { 
     // Ganache local test RPC blockchain
 			network_id: "*",
 			host: "127.0.0.1",
 			port: 7545,
 			gas: 6721975,
       gasPrice: 20000000000,
+    }
   },
 
   // Set default mocha options here, use special reporters, etc.
@@ -113,7 +115,7 @@ module.exports = {
   // Configure your compilers
   compilers: {
     solc: {
-      version: "0.8.21",      // Fetch exact version from solc-bin (default: truffle's version)
+      version: "0.8.1",      // Fetch exact version from solc-bin (default: truffle's version)
       // docker: true,        // Use "0.5.1" you've installed locally with docker (default: false)
       // settings: {          // See the solidity docs for advice about optimization and evmVersion
       //  optimizer: {
