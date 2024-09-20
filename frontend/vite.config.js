@@ -1,7 +1,24 @@
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
+import { defineConfig } from 'vite';
+import path from 'path';
+import vuePlugin from '@vitejs/plugin-vue';
 
-// https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [vue()],
-})
+  plugins: [vuePlugin()],
+  build: {
+    env: {
+      dev: {
+        VITE_API_URL: 'https://dev-api.example.com',
+      },
+      prod: {
+        VITE_API_URL: 'https://prod-api.example.com',
+      },
+    },
+  },
+  mode: process.env.MODE, // Set the mode based on the environment variable
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+  include: ['src/**/*', 'views/**/*'],
+});
