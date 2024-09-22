@@ -31,7 +31,7 @@
         </v-layout>
       </div>
     </v-layout>
-    <!-- <v-layout
+    <v-layout
       v-show="!metamaskInstalled"
       style="background-color: #F44336; color: white; padding: 25px; text-align: center;"
       justify-center
@@ -41,10 +41,10 @@
     >
       <v-flex style="height:100%; padding-bottom:20px;" xs12 sm12 md12>
         <h1 style="color:#fff;margin-bottom: 20px; line-height: 32px;">
-          Metamask was not detected!
+          Metamask is not installed.
         </h1>
       </v-flex>
-    </v-layout> -->
+    </v-layout>
     <!-- <v-layout
       v-show="metamaskInstalled"
       style=" color: white; padding: 25px; text-align: center;"
@@ -143,17 +143,14 @@
 
 <script>
   import moment from "moment";
-  // import { AuctionRepository } from "../models/AuctionRepository";
+  import { useMetamask } from '@/composables/useMetamask';
+
   export default {
     data: () => ({
       loadingAuctions: true,
       auctions: []
     }),
-    computed: {
-      metamaskInstalled() {
-        return this.$root.$data.globalState.getMetamaskInstalled();
-      }
-    },
+    computed: {},
     methods: {
       openAuction(id) {
         this.$router.push({ name: "Auction", params: { id: id } });
@@ -191,10 +188,18 @@
       //   });
       // }
       // this.loadingAuctions = false;
-      console.log(this)
-      // console.table(this.$auctionRepositoryInstance)
-      // const apiUrl = import.meta.env.VITE_API_URL;
+      console.log(this.$auctionRepositoryInstance)
+    },
+    setup() {
+      const { metamaskInstalled, web3DefaultAccount, networkId } = useMetamask();
+
+      return {
+        metamaskInstalled,
+        web3DefaultAccount,
+        networkId
+      };
     }
   };
 </script>
+
 <style></style>
