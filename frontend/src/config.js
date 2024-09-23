@@ -3,13 +3,13 @@ import AuctionRepository from './contracts/AuctionRepository.json'
 
 
 const config = {
-    JSONRPC_ENDPOINT: 'http://52.59.238.144:8545',
-    JSONRPC_WS_ENDPOINT: 'ws://52.59.238.144:8546', //'ws://52.59.238.144:8546',
-    BZZ_ENDPOINT: 'http://52.59.238.144:8500',
-    SHH_ENDPOINT: 'ws://52.59.238.144:8546',
+    JSONRPC_ENDPOINT: 'http://127.0.0.1:8545',
+    JSONRPC_WS_ENDPOINT: 'ws://127.0.0.1:8545',
+    IPFS_ENDPOINT: 'http://localhost:5001',
+    // SHH_ENDPOINT: 'ws://52.59.238.144:8546',
 
-    DEEDREPOSITORY_ADDRESS: '0xfc35c45cd57661197d0bb19399c9d3ede1c50dcc',
-    AUCTIONREPOSITORY_ADDRESS: '0xefbebbf64a570f7b94f168430f45ecbb87546f06',
+    DEEDREPOSITORY_ADDRESS: DeedRepository.networks['5777'].address,  // 5777 is Ganache default network ID,
+    AUCTIONREPOSITORY_ADDRESS: AuctionRepository.networks['5777'].address,
 
     DEEDREPOSITORY_ABI: DeedRepository.abi,
     AUCTIONREPOSITORY_ABI: AuctionRepository.abi,

@@ -3,6 +3,8 @@
 import os
 import subprocess
 import shutil
+import signal
+import time
 
 # Set absolute paths
 current_dir = os.getcwd()  # Get the current working directory
@@ -18,6 +20,24 @@ def run_command(command, cwd=None):
     except subprocess.CalledProcessError as e:
         print(f"Error: {e}")
         exit(1)
+
+# Function to stop IPFS daemon
+def cleanup():
+    if ipfs_proc:
+        print("Stopping IPFS daemon...")
+        ipfs_proc.terminate()
+        ipfs_proc.wait()
+
+# Initialize IPFS if not already initialized
+print("Checking if IPFS is initialized...")
+if not os.path.exists(os.path.expanduser("~/.ipfs")):
+    print("Initializing IPFS...")
+    run_command('ipfs init')
+
+# Start IPFS daemon in the background
+print("Starting IPFS daemon...")
+ipfs_proc = subprocess.Popen(['ipfs', 'daemon'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+time.sleep(5)  # Wait a few seconds for the IPFS daemon to initialize
 
 # Change to backend folder and compile truffle contracts
 print("Changing to backend folder and compiling truffle contracts...")

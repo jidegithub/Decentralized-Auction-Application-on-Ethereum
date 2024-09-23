@@ -1,5 +1,28 @@
 #!/bin/bash
 
+# # Initialize IPFS if not already initialized
+# if [ ! -d "$HOME/.ipfs" ]; then
+#   echo "Initializing IPFS..."
+#   ipfs init
+#   if [ $? -ne 0 ]; then
+#     echo "Error: Failed to initialize IPFS"
+#     exit 1
+#   fi
+# fi
+
+# # Start IPFS daemon in the background
+# echo "Starting IPFS daemon..."
+# ipfs daemon &
+# IPFS_PID=$!
+
+# # Function to stop IPFS daemon on script exit or error
+# cleanup() {
+#   echo "Stopping IPFS daemon..."
+#   kill $IPFS_PID
+#   exit
+# }
+# trap cleanup EXIT
+
 # Set absolute paths
 current_dir=$PWD
 src_path="$current_dir/backend/build/contracts/"

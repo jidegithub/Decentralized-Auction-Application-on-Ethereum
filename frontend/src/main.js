@@ -14,6 +14,9 @@ import { AuctionRepository } from '../src/models/AuctionRepository'
 import vuetify from './plugins/vuetify' // Path to your Vuetify setup
 import router from './router' // Path to your Router setup
 
+// Import Vuetify CSS (if needed for Vuetify)
+import 'vuetify/dist/vuetify.min.css'
+
 //import store
 import store from '@/store'
 
