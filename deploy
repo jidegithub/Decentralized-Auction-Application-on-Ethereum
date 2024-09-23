@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# Set absolute paths
+current_dir=$PWD
+src_path="$current_dir/backend/build/contracts/"
+dst_path="$current_dir/frontend/src/contracts/"
+
+# change in backend folder and run truffle
+cd backend || exit 1
+
+# Compile truffle contracts
+echo "Compiling truffle contracts..."
+if ! truffle compile; then
+  echo "Error: Truffle compile failed"
+  exit 1
+fi
+
+# Migrate truffle contracts to ganache network
+echo "Migrating truffle contracts to ganache network..."
+if ! truffle migrate --network ganache; then
+  echo "Error: Truffle migrate failed"
+  exit 1
+fi
+
+# change back into main directory
+cd ..
+
+# Ensure the destination directory exists
+echo "Ensuring the destination directory exists..."
+mkdir -p "$dst_path"
+
+# Copy files from build/contracts to frontend/src/contracts and overwrite if necessary
+echo "Copying files to frontend/src/contracts (overwriting if necessary)..."
+for file in "DeedRepository" "AuctionRepository"; do
+  if [ -f "$src_path$file.json" ]; then
+    cp -f "$src_path$file.json" "$dst_path"
+  else
+    echo "Error: File $file.json not found in $src_path"
+    exit 1
+  fi
+done
+
+# Change into frontend folder and run npm run dev
+cd frontend || exit 1
+echo "Running npm run dev in frontend folder..."
+if ! npm run dev; then
+  echo "Error: npm run dev failed"
+  exit 1
+fi
