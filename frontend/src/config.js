@@ -6,6 +6,7 @@ const config = {
     JSONRPC_ENDPOINT: 'http://127.0.0.1:8545',
     JSONRPC_WS_ENDPOINT: 'ws://127.0.0.1:8545',
     IPFS_ENDPOINT: 'http://localhost:5001',
+    IPFS_GATEWAY: 'http://127.0.0.1:8080',
     // SHH_ENDPOINT: 'ws://52.59.238.144:8546',
 
     DEEDREPOSITORY_ADDRESS: DeedRepository.networks['5777'].address,  // 5777 is Ganache default network ID,

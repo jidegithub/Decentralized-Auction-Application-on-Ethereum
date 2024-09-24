@@ -1,9 +1,10 @@
 import Config from '../config'
+import { reactive,ref } from 'vue';
 
 export class AuctionRepository {
 
   web3 = null
-  account = ''
+  account = ref('')
   contractInstance = null
   gas = 4476768
 
@@ -83,8 +84,19 @@ export class AuctionRepository {
   }
 
   getCount() {
-    return this.contractInstance.methods.getCount()
-      .call({ from: this.account, gas: this.gas })
+    console.log(this.account)
+    // return this.contractInstance.methods.getCount()
+    //   .call({ from: this.account, gas: this.gas })
+    return new Promise(async (resolve, reject) => {
+      try {
+        this.contractInstance.methods.getCount({from: this.account, gas: this.gas }, (err, transaction) => {
+          if(!err) resolve(transaction)
+          reject(err)
+        })
+      } catch(e) {
+        reject(e)
+      }
+    })
   }
 
   bid(auctionId, price) {
@@ -92,14 +104,14 @@ export class AuctionRepository {
       .send({ from: this.account, gas: this.gas, value: this.web3.utils.toWei(price, 'ether') })
   }
 
-  create(deedId, auctionTitle, metadata, startingPrice, blockDeadline) {
+  create(deedId, auctionTitle, metadata, startingPrice, endTime) {
     return this.contractInstance.methods.createAuction(
       Config.DEEDREPOSITORY_ADDRESS, 
       deedId, 
       auctionTitle, 
       metadata, 
       this.web3.utils.toWei(startingPrice, 'ether'), 
-      blockDeadline
+      endTime
     ).send({ from: this.account, gas: this.gas })
   }
 

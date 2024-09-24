@@ -1,6 +1,4 @@
-// store.js
 import { reactive } from 'vue';
-import Web3 from 'web3';
 
 const store = reactive({
   metamask: {
@@ -8,6 +6,7 @@ const store = reactive({
     metamaskInstalled: false,
     networkId: '',
   },
+  // local web3 instance(not metamask)
   web3: null,
 
   // Utility methods to mimic Vue 2 store behavior

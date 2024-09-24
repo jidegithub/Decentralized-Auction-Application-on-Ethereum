@@ -28,4 +28,29 @@ async function fetchFileFromIpfs(cid) {
   }
 }
 
-export {uploadFileToIpfs, fetchFileFromIpfs};
+// Retrieve all files from IPFS using rootCid
+const id = '12D3KooWKqbQxmxU6TbAgbyeEvnCzPeujXZWGSk1mm9WQSGFxnpx'
+async function fetchAllFilesFromIpfs(rootCid) {
+  try {
+    // Resolve the CID and list all files
+    const files = [];
+    for await (const file of ipfs.ls(rootCid)) {
+      if (file.type === 'file') {
+        const content = [];
+        for await (const chunk of ipfs.cat(file.cid)) {
+          content.push(chunk);
+        }
+        files.push({
+          path: file.path,
+          content: new TextDecoder().decode(Buffer.concat(content)),
+        });
+      }
+    }
+    return files;
+  } catch (error) {
+    console.error('Error fetching files from IPFS:', error);
+    throw error;
+  }
+}
+
+export {uploadFileToIpfs, fetchFileFromIpfs, fetchAllFilesFromIpfs};

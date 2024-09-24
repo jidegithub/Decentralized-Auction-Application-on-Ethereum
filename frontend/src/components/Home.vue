@@ -32,7 +32,7 @@
       </div>
     </v-layout>
     <v-layout
-      v-show="!metamaskInstalled"
+      v-show="!metaMaskInstalled"
       style="background-color: #F44336; color: white; padding: 25px; text-align: center;"
       justify-center
       align-center
@@ -46,7 +46,7 @@
       </v-flex>
     </v-layout>
     <!-- <v-layout
-      v-show="metamaskInstalled"
+      v-show="metaMaskInstalled"
       style=" color: white; padding: 25px; text-align: center;"
       justify-center
       align-center
@@ -138,17 +138,24 @@
         </div>
       </v-flex>
     </v-layout>
+    {{networkId}}
+    {{web3DefaultAccount}}
+    {{metaMaskInstalled}}
   </div>
 </template>
 
 <script>
+  import { watch, onMounted } from "vue";
   import moment from "moment";
   import { useMetamask } from '@/composables/useMetamask';
+  import store from "../store";
 
   export default {
     data: () => ({
       loadingAuctions: true,
-      auctions: []
+      auctions: [],
+      ipfsUrl:'',
+      store,
     }),
     computed: {},
     methods: {
@@ -156,45 +163,75 @@
         this.$router.push({ name: "Auction", params: { id: id } });
       }
     },
-
     async mounted() {
-      // this.$auctionRepositoryInstance.setAccount("");
-      // const count = await this.$auctionRepositoryInstance.getCount();
+      this.$auctionRepositoryInstance.setAccount(store.metamask.web3DefaultAccount);
+      console.log("something",this.$auctionRepositoryInstance)
+      
+      const count = await this.$auctionRepositoryInstance.getCount();
+      console.log(count);
+      this.ipfsUrl = `${this.$config.IPFS_GATEWAY}/ipfs/${'bafybeigvfdljsm776rryabel2qs43gwlly5fyxajchnza63vxu7vd7jfhu'}`; // IPFS CID for the metadata
+      // const ipfsAssetListings = await fetch(ipfsUrl);
+      console.log('ipfs',this.ipfsUrl)
+
+
       // for (let i = 0; i < count; i++) {
       //   let auction = await this.$auctionRepositoryInstance.findById(i);
-      //   // get metadata
-      //   const swarmResult = await this.$http.get(
-      //     `${this.$config.BZZ_ENDPOINT}/bzz-list:/${auction[3]}`
-      //   );
+        
+      //   // Fetch metadata from IPFS using the auction metadata CID (auction[3])
+      //   const ipfsUrl = `${this.$config.IPFS_GATEWAY}/ipfs/${'12D3KooWKqbQxmxU6TbAgbyeEvnCzPeujXZWGSk1mm9WQSGFxnpx'}`; // IPFS CID for the metadata
+      //   const ipfsAssetListings = await fetch(ipfsUrl);
+        
       //   let imageUrl = "";
-      //   swarmResult.body.entries.map(entry => {
-      //     if ("contentType" in entry)
-      //       imageUrl = `${this.$config.BZZ_ENDPOINT}/bzz-raw:/${auction[3]}/${entry.path}`;
-      //   });
-      //   this.auctions.push({
-      //     id: i,
-      //     image: imageUrl,
-      //     title: auction[0],
-      //     expirationDate: moment(new Date(auction[1].toNumber() * 1000)).format(
-      //       "dddd, MMMM Do YYYY, h:mm:ss a"
-      //     ),
-      //     startingPrice: web3.utils.fromWei(auction[2].toNumber(), "ether"),
-      //     metadata: auction[3],
-      //     deedId: auction[4].toNumber(),
-      //     deedRepositoryAddress: auction[5],
-      //     owner: auction[6],
-      //     active: auction[7],
-      //     finalized: auction[8]
-      //   });
+        
+      //   if (ipfsAssetListings.ok) {
+      //     const metadata = await ipfsAssetListings.json();
+          
+      //     // Assuming the metadata JSON contains an array of file entries or directly a path for image
+      //     if (metadata.image) {
+      //       imageUrl = `${this.$config.IPFS_GATEWAY}/ipfs/${metadata.image}`;
+      //     }
+      //   }
+
+        // this.auctions.push({
+        //   id: i,
+        //   image: imageUrl,
+        //   title: auction[0],
+        //   expirationDate: moment(new Date(auction[1].toNumber() * 1000)).format(
+        //     "dddd, MMMM Do YYYY, h:mm:ss a"
+        //   ),
+        //   startingPrice: web3.utils.fromWei(auction[2].toNumber(), "ether"),
+        //   metadata: auction[3], // This CID points to the metadata stored on IPFS
+        //   deedId: auction[4].toNumber(),
+        //   deedRepositoryAddress: auction[5],
+        //   owner: auction[6],
+        //   active: auction[7],
+        //   finalized: auction[8]
+        // });
       // }
       // this.loadingAuctions = false;
-      console.log(this.$auctionRepositoryInstance)
     },
     setup() {
-      const { metamaskInstalled, web3DefaultAccount, networkId } = useMetamask();
+      const { metaMaskInstalled, web3DefaultAccount, networkId } = useMetamask();
+      // console.log(store.metamask)
+
+      // onMounted(() => {
+      // // // Initial load
+      //   if (web3DefaultAccount) {
+      //   //   this.$auctionRepositoryInstance.setAccount(web3DefaultAccount);
+      //   //   // this.loadAuctions();
+      //     }
+      // });
+
+      // Watch for account changes and trigger the account update
+      watch(() => web3DefaultAccount, (newAccount) => {
+        if (newAccount) {
+          this.$auctionRepositoryInstance.setAccount(newAccount);
+          // this.loadAuctions(); // Reload auctions when the account changes
+        }
+      });
 
       return {
-        metamaskInstalled,
+        metaMaskInstalled,
         web3DefaultAccount,
         networkId
       };

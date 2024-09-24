@@ -105,6 +105,70 @@ contract AuctionRepository {
 	}
 
 	/**
+	* @dev Gets the length of auctions
+	* @return uint representing the auction count
+	*/
+	function getCount() public view returns(uint) {
+		return auctions.length;
+	}
+
+	/**
+	* @dev Gets an array of owned auctions
+	* @param _owner address of the auction owner
+	*/
+	function getAuctionsOf(address _owner) public view returns(uint[] memory) {
+		uint[] memory ownedAuctions = auctionOwner[_owner];
+		return ownedAuctions;
+	}
+
+	/**
+	* @dev Gets the total number of auctions owned by an address
+	* @param _owner address of the owner
+	* @return uint total number of auctions
+	*/
+	function getAuctionsCountOfOwner(address _owner) public view returns(uint) {
+		return auctionOwner[_owner].length;
+	}
+
+	/**
+ * @dev Returns details of an auction by its ID
+ * @param _auctionId The ID of the auction
+ * @return name Name of the auction
+ * @return endTime Timestamp of when the auction expires
+ * @return startPrice Starting price of the auction
+ * @return metadata Metadata related to the auction
+ * @return deedId ID of the deed being auctioned
+ * @return deedRepositoryAddress Address of the deed repository contract
+ * @return owner Owner of the auction
+ * @return active Boolean indicating if the auction is active
+ * @return finalized Boolean indicating if the auction has been finalized
+ */
+	function getAuctionById(uint _auctionId) public view returns(
+		string memory name,
+		uint256 endTime,
+		uint256 startPrice,
+		string memory metadata,
+		uint256 deedId,
+		address deedRepositoryAddress,
+		address owner,
+		bool active,
+		bool finalized) {
+
+		Auction memory auc = auctions[_auctionId];
+		return (
+			auc.name,
+			auc.endTime,
+			auc.startPrice,
+			auc.metadata,
+			auc.deedId,
+			auc.deedRepositoryAddress,
+			auc.owner,
+			auc.active,
+			auc.finalized
+    );
+	}
+
+	/**
   * @dev Bidder sends bid on an auction
   * @dev Auction should be active and not ended
   * @dev Refund previous bidder if a new bid is valid and placed.
@@ -156,6 +220,29 @@ contract AuctionRepository {
 		auctionBids[_auctionId].push(newBid);
 
 		emit BidSuccess(msg.sender, _auctionId);
+	}
+
+	/**
+	* @dev Gets the bid counts of a given auction
+	* @param _auctionId uint ID of the auction
+	*/
+	function getBidsCount(uint _auctionId) public view returns(uint) {
+		return auctionBids[_auctionId].length;
+	}
+
+	/**
+	* @dev Gets an array of owned auctions
+	* @param _auctionId uint of the auction owner
+	* @return amount uint256, address of last bidder
+	*/
+	function getCurrentBid(uint _auctionId) public view returns(uint256, address) {
+		uint bidsLength = auctionBids[_auctionId].length;
+		// if there are bids refund the last bid
+		if( bidsLength > 0 ) {
+			Bid memory lastBid = auctionBids[_auctionId][bidsLength - 1];
+			return (lastBid.amount, lastBid.from);
+		}
+		return (uint256(0), address(0));
 	}
 
 	function cancelAuction(uint _auctionId) public isOwner(_auctionId) {
