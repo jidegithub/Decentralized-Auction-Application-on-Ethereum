@@ -19,7 +19,7 @@ export function useMetamask() {
             const account = accounts[0];
             // console.log("Connected MetaMask Account:", account);
             web3DefaultAccount.value = account;
-            store.setWeb3DefaultAccount(account)
+            store.setWeb3DefaultAccount(account);
           }
         })
         .catch((error) => {
@@ -57,7 +57,7 @@ export function useMetamask() {
         });
     }
   };
-
+  
   onMounted(() => {
     detectMetamask();
     // Optionally, listen for account or network changes

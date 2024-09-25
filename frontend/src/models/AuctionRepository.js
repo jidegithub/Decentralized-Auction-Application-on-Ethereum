@@ -1,5 +1,5 @@
 import Config from '../config'
-import { reactive,ref } from 'vue';
+import { ref } from 'vue';
 
 export class AuctionRepository {
 
@@ -84,7 +84,7 @@ export class AuctionRepository {
   }
 
   getCount() {
-    console.log(this.account)
+    // console.log(this.account)
     // return this.contractInstance.methods.getCount()
     //   .call({ from: this.account, gas: this.gas })
     return new Promise(async (resolve, reject) => {

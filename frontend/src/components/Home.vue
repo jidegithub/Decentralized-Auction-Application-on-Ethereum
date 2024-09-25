@@ -145,97 +145,97 @@
 </template>
 
 <script>
-  import { watch, onMounted } from "vue";
+  import { ref } from "vue";
   import moment from "moment";
   import { useMetamask } from '@/composables/useMetamask';
-  import store from "../store";
+  import store from "@/store";
+import { fetchAllFilesFromIpfsMFS, fetchFileFromIpfs } from "@/ipfs";
+import web3 from '@/web3'
 
   export default {
     data: () => ({
       loadingAuctions: true,
       auctions: [],
-      ipfsUrl:'',
+      ipfsUrl:'https://ipfs.io/',
+      konto:ref(store.metamask),
       store,
     }),
     computed: {},
     methods: {
       openAuction(id) {
         this.$router.push({ name: "Auction", params: { id: id } });
+      },
+      generateUrl(cid){
+        // Create a functional URL using the URL object
+        const assetUrl = new URL(`ipfs/${cid}`, this.ipfsUrl);
+        console.log('Asset URL:', assetUrl.href);  // Prints the full URL
+        // const ipfsUrl = `${this.$config.IPFS_GATEWAY}/ipfs/${'12D3KooWKqbQxmxU6TbAgbyeEvnCzPeujXZWGSk1mm9WQSGFxnpx'}`; // IPFS CID for the metadata
+        return assetUrl.href;
       }
-    },
-    async mounted() {
-      this.$auctionRepositoryInstance.setAccount(store.metamask.web3DefaultAccount);
-      console.log("something",this.$auctionRepositoryInstance)
-      
-      const count = await this.$auctionRepositoryInstance.getCount();
-      console.log(count);
-      this.ipfsUrl = `${this.$config.IPFS_GATEWAY}/ipfs/${'bafybeigvfdljsm776rryabel2qs43gwlly5fyxajchnza63vxu7vd7jfhu'}`; // IPFS CID for the metadata
-      // const ipfsAssetListings = await fetch(ipfsUrl);
-      console.log('ipfs',this.ipfsUrl)
-
-
-      // for (let i = 0; i < count; i++) {
-      //   let auction = await this.$auctionRepositoryInstance.findById(i);
-        
-      //   // Fetch metadata from IPFS using the auction metadata CID (auction[3])
-      //   const ipfsUrl = `${this.$config.IPFS_GATEWAY}/ipfs/${'12D3KooWKqbQxmxU6TbAgbyeEvnCzPeujXZWGSk1mm9WQSGFxnpx'}`; // IPFS CID for the metadata
-      //   const ipfsAssetListings = await fetch(ipfsUrl);
-        
-      //   let imageUrl = "";
-        
-      //   if (ipfsAssetListings.ok) {
-      //     const metadata = await ipfsAssetListings.json();
-          
-      //     // Assuming the metadata JSON contains an array of file entries or directly a path for image
-      //     if (metadata.image) {
-      //       imageUrl = `${this.$config.IPFS_GATEWAY}/ipfs/${metadata.image}`;
-      //     }
-      //   }
-
-        // this.auctions.push({
-        //   id: i,
-        //   image: imageUrl,
-        //   title: auction[0],
-        //   expirationDate: moment(new Date(auction[1].toNumber() * 1000)).format(
-        //     "dddd, MMMM Do YYYY, h:mm:ss a"
-        //   ),
-        //   startingPrice: web3.utils.fromWei(auction[2].toNumber(), "ether"),
-        //   metadata: auction[3], // This CID points to the metadata stored on IPFS
-        //   deedId: auction[4].toNumber(),
-        //   deedRepositoryAddress: auction[5],
-        //   owner: auction[6],
-        //   active: auction[7],
-        //   finalized: auction[8]
-        // });
-      // }
-      // this.loadingAuctions = false;
     },
     setup() {
       const { metaMaskInstalled, web3DefaultAccount, networkId } = useMetamask();
-      // console.log(store.metamask)
-
-      // onMounted(() => {
-      // // // Initial load
-      //   if (web3DefaultAccount) {
-      //   //   this.$auctionRepositoryInstance.setAccount(web3DefaultAccount);
-      //   //   // this.loadAuctions();
-      //     }
-      // });
-
-      // Watch for account changes and trigger the account update
-      watch(() => web3DefaultAccount, (newAccount) => {
-        if (newAccount) {
-          this.$auctionRepositoryInstance.setAccount(newAccount);
-          // this.loadAuctions(); // Reload auctions when the account changes
-        }
-      });
-
+  
       return {
         metaMaskInstalled,
         web3DefaultAccount,
         networkId
       };
-    }
+    },
+    async mounted() {
+      console.log('konto',this.konto)
+      // Watch for changes to networkId since it might not be immediately available
+      // watch(
+      //   () => this.networkId, 
+      //   (newNetworkId) => {
+      //     if (newNetworkId) {
+      //       console.log('Network ID:', newNetworkId.value);
+      //     }
+      //   },
+      //   { immediate: true } // This will trigger the watch immediately if a value is already present
+      // );
+
+      this.$auctionRepositoryInstance.setAccount(this.konto);
+      console.log("auction instance",this.$auctionRepositoryInstance)
+      
+      const ipfsAssetListings = await fetchAllFilesFromIpfsMFS();
+      console.log('ipfs',ipfsAssetListings)
+
+      const assetListings = ipfsAssetListings.length; 
+      
+      // const count = await this.$auctionRepositoryInstance.getCount();
+
+      for (let i = 0; i < assetListings; i++) {
+        let auction = ipfsAssetListings[i];
+        let imageUrl;
+        
+        if (ipfsAssetListings > 0) {
+          const metadata = auction;
+          console.log('metadata',metadata)
+          // Assuming the metadata JSON contains an object of file entries or directly a path for image
+          if (metadata.content) {
+            imageUrl = this.generateUrl(metadata.cid);
+          }
+        }
+
+        this.auctions.push({
+          id: i,
+          image: imageUrl,
+          title: auction.name, 
+          expirationDate: moment(new Date(8.64e15).toString()).format(
+            "dddd, MMMM Do YYYY, h:mm:ss a"
+          ),
+          startingPrice: web3.utils.fromWei(600, "ether"),
+          metadata: auction.cid, // This CID points to the metadata stored on IPFS
+          deedId: '7076736734673'.toString(),
+          deedRepositoryAddress: "something",
+          owner: 'me',
+          active: true,
+          finalized: false
+        });
+      }
+      this.loadingAuctions = false;
+    },
   };
 </script>
 

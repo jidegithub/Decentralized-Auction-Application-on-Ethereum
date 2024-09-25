@@ -43,23 +43,28 @@
 </template>
 
 <script>
-import { uploadFileToIpfs } from '@/ipfs';
+import { uploadFileToIpfs, uploadFileToIpfsMFS } from '@/ipfs';
 
 export default {
   data() {
     return {
       selectedFile: null,
+      selectedFileName: null,
       uploadProgress: 0,
       isUploading: false,
       uploadMessage: '',
       ipfsHash: '',
     };
   },
+  // computed(){
+  //   fileName = this.selectedFile.name
+  // },
   methods: {
     onFileSelected(event) {
       // Vuetify returns the selected file or list of files as an array
       //but we are only uploading one file for now
       this.selectedFile = event.target.files[0];
+      this.selectedFileName = this.selectedFile.name
 
       this.uploadMessage = ''; // Clear previous message
       this.ipfsHash = ''; // Clear the IPFS hash from the previous upload
@@ -71,13 +76,20 @@ export default {
       this.uploadProgress = 0;
 
       try {
-        // Upload the file to IPFS
-        const fileBuffer = await this.fileToBuffer(this.selectedFile);
-        const ipfsResponse = await uploadFileToIpfs(fileBuffer);
+        // // Upload the file to IPFS
+        // const fileBuffer = await this.fileToBuffer(this.selectedFile);
+        // const ipfsResponse = await uploadFileToIpfs(fileBuffer);
 
+        // this.isUploading = false;
+        // this.uploadMessage = 'File uploaded successfully to IPFS!';
+        // this.ipfsHash = ipfsResponse.path; // Get the IPFS hash
+
+        // Upload to IPFSMFS(i.e webui)
+        const fileBuffer = await this.fileToBuffer(this.selectedFile);
+        const ipfsResponse = await uploadFileToIpfsMFS(fileBuffer, this.selectedFileName);
         this.isUploading = false;
-        this.uploadMessage = 'File uploaded successfully to IPFS!';
-        this.ipfsHash = ipfsResponse.path; // Get the IPFS hash
+        this.uploadMessage = 'File uploaded successfully to IPFSMFS!';
+        // doesn't return any value // Get the IPFS hash
       } catch (error) {
         this.isUploading = false;
         console.error('File upload failed:', error);

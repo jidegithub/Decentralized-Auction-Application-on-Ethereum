@@ -34,8 +34,6 @@ const auctionRepositoryInstance = new AuctionRepository();
 if (typeof web3 !== 'undefined') {
   auctionRepositoryInstance.setWeb3(web3);
   deedRepositoryInstance.setWeb3(web3);
-
-  auctionRepositoryInstance.setAccount(store.metamask.web3DefaultAccount);
 }
 
 // Make instances globally available via config.globalProperties
