@@ -45,7 +45,7 @@
         </h1>
       </v-flex>
     </v-layout>
-    <!-- <v-layout
+    <v-layout
       v-show="metaMaskInstalled"
       style=" color: white; padding: 25px; text-align: center;"
       justify-center
@@ -77,10 +77,10 @@
         md4
       >
         <v-card>
-          <v-card-media :src="auction.image" height="300px"> -->
-            <!-- <img height="300px" :src="auction.image" /> -->
-          <!-- </v-card-media> -->
-          <!-- <v-card-title style="text-align:left;" primary-title>
+          <v-card-media :src="auction.image" height="300px">
+            <img height="300px" :src="auction.image" />
+          </v-card-media>
+          <v-card-title style="text-align:left;" primary-title>
             <div>
               <div class="headline">{{ auction.title }}</div>
               <span class="grey--text"
@@ -113,18 +113,18 @@
             >
             <v-spacer></v-spacer>
           </v-card-actions>
-          <v-slide-y-transition> -->
-            <!-- <v-card-text>placeholder</v-card-text> -->
-          <!-- </v-slide-y-transition>
+          <v-slide-y-transition>
+            <v-card-text>placeholder</v-card-text>
+          </v-slide-y-transition>
         </v-card>
       </v-flex>
       <v-flex style="height:100%; padding-bottom:20px;" xs12 sm12 md12>
         <v-btn outline color="teal">Load More Auctions</v-btn>
       </v-flex>
-    </v-layout> -->
+    </v-layout>
     <v-layout
       v-show="false"
-      style=" color: white; padding: 25px; text-align: center;     background-color: rgb(3, 46, 66);"
+      style=" color: white; padding: 25px; text-align: center; background-color: rgb(3, 46, 66);"
       justify-center
       align-center
       row
@@ -184,16 +184,6 @@ import web3 from '@/web3'
     },
     async mounted() {
       console.log('konto',this.konto)
-      // Watch for changes to networkId since it might not be immediately available
-      // watch(
-      //   () => this.networkId, 
-      //   (newNetworkId) => {
-      //     if (newNetworkId) {
-      //       console.log('Network ID:', newNetworkId.value);
-      //     }
-      //   },
-      //   { immediate: true } // This will trigger the watch immediately if a value is already present
-      // );
 
       this.$auctionRepositoryInstance.setAccount(this.konto);
       console.log("auction instance",this.$auctionRepositoryInstance)

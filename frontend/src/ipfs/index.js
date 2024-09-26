@@ -105,7 +105,7 @@ async function checkIfDirectoryExist(directoryName){
   // await ipfs.files.mkdir('/example')
   // await ipfs.files.mkdir('/my/directory/example', { parents: true })
   try {
-    const {cid,size,cumulativeSize,type,blocks,withLocality,local,sizeLocal} = await ipfs.files.stat(`/${directoryName}`)
+    const {cid,type} = await ipfs.files.stat(`/${directoryName}`)
     if (cid && typeof cid === "string" && type === "directory") {
       return true;
     }
