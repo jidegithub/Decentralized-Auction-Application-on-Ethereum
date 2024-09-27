@@ -1,255 +1,293 @@
 <template>
-	<v-app :class="getScreen">
-		<v-content>
-			<v-container v-scroll="onScroll" class="homepage" style="padding:0px;" fluid>
-				<v-navigation-drawer class="pl-drawer" style="background-color: rgba(0, 0, 0, 0.76);" disable-resize-watcher
-					disable-route-watcher fixed v-model="drawer" app>
-					<v-list dense>
-						<v-list-item>
-							<v-list-item-action>
-								<v-icon>dashboard</v-icon>
-							</v-list-item-action>
-							<v-list-item-content>
-								<v-list-item-title>Home</v-list-item-title>
-							</v-list-item-content>
-						</v-list-item>
-						<v-list-item>
-							<v-list-item-action>
-								<v-icon>settings</v-icon>
-							</v-list-item-action>
-							<v-list-item-content>
-								<v-list-item-title>Add Auction</v-list-item-title>
-							</v-list-item-content>
-						</v-list-item>
-						<v-list-item>
-							<v-list-item-action>
-								<v-icon>settings</v-icon>
-							</v-list-item-action>
-							<v-list-item-content>
-								<v-list-item-title>View Auctions</v-list-item-title>
-							</v-list-item-content>
-						</v-list-item>
-					</v-list>
-				</v-navigation-drawer>
-				<v-layout>
-					<v-flex xs12 sm12 md12>
-						<v-toolbar :class="transparentNav" class="peer-toolbar" fixed dark style="padding-top: 5px;">
-							<v-toolbar-side-icon @click="drawer = !drawer" style="position: fixed;"
-								v-show="!this.mdAndUp"></v-toolbar-side-icon>
-							<v-toolbar-title v-show="this.mdAndUp" style="font-weight:100;" class="white--text">Auction
-								Dapp</v-toolbar-title>
-							<v-spacer></v-spacer>
-							<div v-show="!this.mdAndUp" style="min-height:49px;"> </div>
-							<div v-show="this.mdAndUp">
+  <v-app :class="getScreen">
+    <v-main>
+      <v-container v-scroll="onScroll" class="homepage" style="padding:0px;" fluid>
+        <v-navigation-drawer
+          class="pl-drawer"
+          style="background-color: rgba(0, 0, 0, 0.76);"
+          disable-resize-watcher
+          disable-route-watcher
+          fixed
+          v-model="drawer"
+          app
+        >
+          <v-list density="compact">
+            <v-list-item>
+              <v-list-item-icon>
+                <v-icon>dashboard</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>Home</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+            <v-list-item>
+              <v-list-item-icon>
+                <v-icon>settings</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>Add Auction</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+            <v-list-item>
+              <v-list-item-icon>
+                <v-icon>settings</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>View Auctions</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list>
+        </v-navigation-drawer>
+        <v-layout>
+          <v-flex xs12 sm12 md12>
+            <v-toolbar :class="transparentNav" class="peer-toolbar" fixed dark style="padding-top: 5px;">
+              <v-app-bar-nav-icon @click="drawer = !drawer" style="position: fixed;" v-show="!this.mdAndUp"></v-app-bar-nav-icon>
+              <v-toolbar-title v-show="this.mdAndUp" style="font-weight:100;" class="white--text">Auction Dapp</v-toolbar-title>
+              <v-spacer></v-spacer>
+              <div v-show="!this.mdAndUp" style="min-height:49px;"> </div>
+              <div v-show="this.mdAndUp">
+                <v-btn @click="showAuction()" variant="outlined" color="white">
+                  <v-icon left dark>add</v-icon>
+                  New Auction 
+                </v-btn>
+              </div>
+            </v-toolbar>
+          </v-flex>
+        </v-layout>
+        <router-view>
+          <!-- <v-container fluid></v-container> -->
+        </router-view>
+      </v-container>
+      <v-dialog v-model="dialog" fullscreen transition="dialog-bottom-transition" :overlay=false>
+        <v-card>
+          <v-toolbar dark color="primary">
+            <v-btn icon @click="dialog = false" dark>
+              <v-icon>close</v-icon>
+            </v-btn>
+            <v-toolbar-title>New Auction</v-toolbar-title>
+            <v-spacer></v-spacer>
+            <v-toolbar-items>
+              <!-- <v-btn dark flat @click.native="dialog = false">Save</v-btn> -->
+            </v-toolbar-items>
+          </v-toolbar>
+          <v-divider></v-divider>
+          <v-list v-show="!networkReady" three-line subheader>
+            <v-subheader style="color:red;">
+              <v-icon color="red">error</v-icon>
+              Error: Please make sure metamask is installed and connected to a network with an account selected
+            </v-subheader>
+          </v-list>
+          <v-list v-show="networkReady" three-line subheader>
+            <v-subheader>General</v-subheader>
+            <v-stepper v-model="stepperIndex" vertical>
+              <v-stepper-step step="1" v-bind:complete="stepperIndex > 1">
+                Create a Non-fungible token (ERC721 Compilant)
+                <small>Create a Deed/Token</small>
+              </v-stepper-step>
+              <v-stepper-content step="1">
+                <v-card class="mb-5">
+                  <v-layout xs12 sm12 md12 row wrap>
+                    <v-flex  style="height:100%; padding-bottom:20px;" xs12 sm12 md12>
+                      <v-text-field
+                        v-model="deed.deedId"
+                        placeholder="e.g "
+                        label="Unique ID - Autogenerated"
+                        persistent-hint
+												readonly
+                      ></v-text-field>
+                      <v-text-field
+                        v-model="deed.deedURI"
+                        placeholder="ipfs/swarm or domain.eth"
+                        label="DeedURI(ERC721 URI)"
+                        persistent-hint
+                      ></v-text-field>
+                      <div v-show="createAssetSuccess">
+                        <v-icon color="teal">check_circle</v-icon> 
+                        <h3 style="color:green !important;">asset was successfully created</h3>
+                      </div>
+                      <div v-show="creatingAssetError">
+                        <h3 style="color:red !important;">{{creatingAssetError}}</h3>
+                      </div>
+                      <div v-show="creatingAsset">
+                        <h3>Please wait while your asset is deployed...</h3>
+                        <v-progress-linear v-bind:indeterminate="true"></v-progress-linear>
+                      </div>
+                      <v-btn v-show="!createAssetSuccess" :disabled="deed.deedURI.length==0 || creatingAsset" variant="outlined" color="teal" @click="registerDeed()">Create Deed/Token</v-btn>
+                      <!-- <v-btn v-show="!createAssetSuccess" outline color="teal" @click="stepperIndex++">Skip</v-btn> -->
+                    </v-flex>
+                  </v-layout>
+                </v-card>
+                <v-btn v-show="createAssetSuccess" variant="outlined" color="primary" @click="stepperIndex++" flat>Next</v-btn>
+              </v-stepper-content>
+              <v-stepper-step step="2" v-bind:complete="stepperIndex > 2">
+                Transfer ownership of Deed/Token to AuctionRepository
+                <small>Transfer Ownership</small>
+              </v-stepper-step>
+              <v-stepper-content step="2">
+                <v-card class="mb-5">
+                  <v-layout xs12 sm12 md12 row wrap>
+                    <v-flex  style="height:100%; padding-bottom:20px;" xs12 sm12 md12>
+                      <v-flex  style="height:100%; padding-bottom:20px;" xs12 sm12 md12>
+                        <v-select v-model="selectedDeed" :items="deeds" label="Asset" ></v-select>
+                      </v-flex>
+                      <div v-show="transferDeedSuccess">
+                        <v-icon color="teal">check_circle</v-icon> 
+                        <h3 style="color:green !important;">Ownership was successfully transfered</h3>
+                      </div>
 
-								<v-btn @click="showAuction()" outline color="white">
-									<v-icon left dark>add</v-icon>
-									New Auction
-								</v-btn>
-							</div>
-						</v-toolbar>
-					</v-flex>
-				</v-layout>
-				<router-view>
-					<!-- <v-container fluid></v-container> -->
-				</router-view>
-			</v-container>
-			<v-dialog v-model="dialog" fullscreen transition="dialog-bottom-transition" :overlay=false>
-				<v-card>
-					<v-toolbar dark color="primary">
-						<v-btn icon @click.native="dialog = false" dark>
-							<v-icon>close</v-icon>
-						</v-btn>
-						<v-toolbar-title>New Auction</v-toolbar-title>
-						<v-spacer></v-spacer>
-						<v-toolbar-items>
-							<!-- <v-btn dark flat @click.native="dialog = false">Save</v-btn> -->
-						</v-toolbar-items>
-					</v-toolbar>
-					<v-divider></v-divider>
-					<v-list v-show="!networkReady" three-line subheader>
-						<v-subheader style="color:red;">
-							<v-icon color="red">error</v-icon>
-							Error: Please make sure metamask is installed and connected to a network with an account selected
-						</v-subheader>
-					</v-list>
-					<v-list v-show="networkReady" three-line subheader>
-						<v-subheader>General</v-subheader>
-						<v-stepper v-model="stepperIndex" vertical>
-							<v-stepper-step step="1" v-bind:complete="stepperIndex > 1">
-								Create a Non-fungible token (ERC721 Compilant)
-								<small>Create a Deed/Token</small>
-							</v-stepper-step>
-							<v-stepper-content step="1">
-								<v-card class="mb-5">
-									<v-layout xs12 sm12 md12 row wrap>
-										<v-flex style="height:100%; padding-bottom:20px;" xs12 sm12 md12>
-											<v-text-field v-model="deed.deedId" placeholder="e.g "
-												label="Unique ID - Autogenerated(Edit if required)" persistent-hint></v-text-field>
-											<v-text-field v-model="deed.deedURI" placeholder="ipfs/swarm or domain.eth"
-												label="DeedURI(ERC721 URI)" persistent-hint></v-text-field>
-											<div v-show="createAssetSuccess">
-												<v-icon color="teal">check_circle</v-icon>
-												<h3 style="color:green !important;">asset was successfully created</h3>
-											</div>
-											<div v-show="creatingAssetError">
-												<h3 style="color:red !important;">{{ creatingAssetError }}</h3>
-											</div>
-											<div v-show="creatingAsset">
-												<h3>Please wait while your asset is deployed...</h3>
-												<v-progress-linear v-bind:indeterminate="true"></v-progress-linear>
-											</div>
-											<v-btn v-show="!createAssetSuccess" :disabled="deed.deedURI.length == 0 || creatingAsset"
-												color="teal" outline @click.native="registerDeed()">Create Deed/Token</v-btn>
-											<!-- <v-btn v-show="!createAssetSuccess" outline color="teal" @click="stepperIndex++">Skip</v-btn> -->
-										</v-flex>
-									</v-layout>
-								</v-card>
-								<v-btn v-show="createAssetSuccess" outline color="primary" @click="stepperIndex++" flat>Next</v-btn>
-							</v-stepper-content>
-							<v-stepper-step step="2" v-bind:complete="stepperIndex > 2">
-								Transfer ownership of Deed/Token to AuctionRepository
-								<small>Transfer Ownership</small>
-							</v-stepper-step>
-							<v-stepper-content step="2">
-								<v-card class="mb-5">
-									<v-layout xs12 sm12 md12 row wrap>
-										<v-flex style="height:100%; padding-bottom:20px;" xs12 sm12 md12>
-											<v-flex style="height:100%; padding-bottom:20px;" xs12 sm12 md12>
-												<v-select v-model="selectedDeed" :items="deeds" label="Asset"></v-select>
-											</v-flex>
-											<div v-show="transferDeedSuccess">
-												<v-icon color="teal">check_circle</v-icon>
-												<h3 style="color:green !important;">Ownership was successfully transfered</h3>
-											</div>
+                      <div v-show="transferingDeed">
+                        <h3>Please wait while transfering ownership</h3>
+                        <v-progress-linear v-bind:indeterminate="true"></v-progress-linear>
+                      </div>
+                      <v-btn :disabled="selectedDeed==null || transferDeedSuccess || transferingDeed " @click="transferTo()" variant="outlined" color="teal">Transfer Ownership</v-btn>
+                      <v-btn v-show="transferDeedSuccess" variant="outlined" color="primary" @click="stepperIndex++">Next</v-btn>
+                      <!-- <v-btn outline color="teal" @click="stepperIndex++">Skip</v-btn> -->
+                    </v-flex>
+                  </v-layout>
+                </v-card>
+              </v-stepper-content>
 
-											<div v-show="transferingDeed">
-												<h3>Please wait while transfering ownership</h3>
-												<v-progress-linear v-bind:indeterminate="true"></v-progress-linear>
-											</div>
-											<v-btn :disabled="selectedDeed == null || transferDeedSuccess || transferingDeed"
-												@click="transferTo()" outline color="teal">Transfer Ownership</v-btn>
-											<v-btn v-show="transferDeedSuccess" outline color="primary" @click="stepperIndex++">Next</v-btn>
-											<!-- <v-btn outline color="teal" @click="stepperIndex++">Skip</v-btn> -->
-										</v-flex>
-									</v-layout>
-								</v-card>
-							</v-stepper-content>
+              <v-stepper-step step="3" v-bind:complete="stepperIndex > 3">
+                Create an auction
+                <small>Enter the details of the auction</small>
+              </v-stepper-step>
+              <v-stepper-content step="3">
+                <v-card class="mb-5" >
+                  <v-layout xs12 sm12 md12 row wrap>
+                    <v-flex  style="height:100%; padding-bottom:20px;" xs12 sm12 md12>
+                      <v-select v-model="auction.deedId" :items="deeds" label="Deed ID" ></v-select>
+                    </v-flex>
+                    
+                    <v-flex  style="height:100%; padding-bottom:20px;" xs12 sm12 md12>
+                      <v-text-field
+                        v-model="auction.auctionTitle"
+                        placeholder="e.g. My NFT"
+                        label="Auction title"
+                        persistent-hint
+                        ></v-text-field>
+                    </v-flex>
 
-							<v-stepper-step step="3" v-bind:complete="stepperIndex > 3">
-								Create an auction
-								<small>Enter the details of the auction</small>
-							</v-stepper-step>
-							<v-stepper-content step="3">
-								<v-card class="mb-5">
-									<v-layout xs12 sm12 md12 row wrap>
-										<v-flex style="height:100%; padding-bottom:20px;" xs12 sm12 md12>
-											<v-select v-model="auction.deedId" :items="deeds" label="Deed ID"></v-select>
-										</v-flex>
+                    <v-flex  style="height:100%; padding-bottom:20px;" xs12 sm12 md12>
+                      <b style="color:red;">Image(png/jpg):</b> <input  type="file" @change="fileSelectionEvent($event)">
+                    </v-flex>
 
-										<v-flex style="height:100%; padding-bottom:20px;" xs12 sm12 md12>
-											<v-text-field v-model="auction.auctionTitle" placeholder="e.g. My NFT" label="Auction title"
-												persistent-hint></v-text-field>
-										</v-flex>
+                    <v-flex  style="height:100%; padding-bottom:20px;" xs12 sm12 md12>
+                      <v-text-field
+                        v-model="auction.startingPrice"
+                        placeholder="10 Ethers"
+                        label="Starting Price"
+                        persistent-hint
+                        ></v-text-field>
+                    </v-flex>
+                    <!-- <v-flex style="height:100%; padding-bottom:20px;" xs12 sm12 md12>
+                      <v-text-field
+                        v-model="auction.reservePrice"
+                        placeholder="30 Ethers"
+                        label="Reserve Price"
+                        persistent-hint
+                        ></v-text-field>
+                    </v-flex> -->
+                    <v-flex  style="height:100%; padding-bottom:20px;" xs12 sm6 md6>
+                      <v-text-field
+                        v-model="auction.timeInDays"
+                        placeholder="30 Days"
+                        label="Auction Expiration ( in days )"
+                        persistent-hint
+                        ></v-text-field>
+                    </v-flex>
+                    <v-flex  style="height:100%; padding-bottom:20px;" xs12 sm6 md6>
+                      <v-text-field
+                        v-model="auction.timeInBlocks"
+                        disabled
+                        placeholder=""
+                        label="Equivalent unix timestamp"
+                        persistent-hint
+                        ></v-text-field>
+                    </v-flex>
+                    <v-flex  style="height:100%; padding-bottom:20px;" xs12 sm6 md6>
+                      <v-btn @click="uploadAndCreateAuction()" variant="outlined" color="teal">Create Auction</v-btn>
+                    </v-flex>
+                  </v-layout>
+                </v-card>
+                
+              </v-stepper-content>
+            </v-stepper>
+          </v-list>
+        </v-card>
+      </v-dialog>
 
-										<v-flex style="height:100%; padding-bottom:20px;" xs12 sm12 md12>
-											<b style="color:red;">Image(png/jpg):</b> <input type="file" @change="fileSelectionEvent($event)">
-										</v-flex>
+      <v-dialog v-model="loadingModal" persistent max-width="290">
+        <v-card>
+          <v-card-title class="headline">Please wait</v-card-title>
+          <v-card-text style="text-align: center;">
+            <v-progress-linear v-bind:indeterminate="true"></v-progress-linear>
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
 
-										<v-flex style="height:100%; padding-bottom:20px;" xs12 sm12 md12>
-											<v-text-field v-model="auction.startingPrice" placeholder="10 Ethers" label="Starting Price"
-												persistent-hint></v-text-field>
-										</v-flex>
-										<!-- <v-flex  style="height:100%; padding-bottom:20px;" xs12 sm12 md12>
-																			<v-text-field
-																					v-model="auction.reservePrice"
-																					placeholder="30 Ethers"
-																					label="Reserve Price"
-																					persistent-hint
-																					></v-text-field>
-																	</v-flex> -->
-										<v-flex style="height:100%; padding-bottom:20px;" xs12 sm6 md6>
-											<v-text-field v-model="auction.timeInDays" placeholder="30 Days"
-												label="Auction Expiration ( in days )" persistent-hint></v-text-field>
-										</v-flex>
-										<v-flex style="height:100%; padding-bottom:20px;" xs12 sm6 md6>
-											<v-text-field v-model="auction.timeInBlocks" disabled placeholder=""
-												label="Equivalent unix timestamp" persistent-hint></v-text-field>
-										</v-flex>
-										<v-flex style="height:100%; padding-bottom:20px;" xs12 sm6 md6>
-											<v-btn @click="uploadAndCreateAuction()" outline color="teal">Create Auction</v-btn>
-										</v-flex>
-									</v-layout>
-								</v-card>
+      <div v-show="statusPopup" class="dialog bottom-sheet bottom-sheet--inset dialog--active dialog--persistent" style="background-color:white; max-width: 100% !important; -webkit-box-align: center;align-items: center;display: flex;/* height: 100%; */-webkit-box-pack: center;justify-content: center;left: 0px;position: fixed;bottom: 0px;transition: 0.3s ease-in-out;z-index: 6;outline: none;">
+        <div style="cursor: pointer; position:absolute; top:0; right:0;">
+          <v-icon @click="closeStatus()">clear</v-icon>
+        </div>
+        <v-layout style="padding:10px;" wrap row>
+          <v-flex xs12 sm4 md4>
+            <div v-show="getMetamaskInstalled">
+              <v-icon color="teal">check_circle</v-icon> Metamask installed
+            </div>
+            <div v-show="!getMetamaskInstalled">
+              <v-icon  color="red">error</v-icon> Metamask not installed
+            </div>
+          </v-flex>
+          <v-flex xs12 sm4 md4>
+            <div v-show="getNetworkId != ''">
+              <v-icon color="teal">check_circle</v-icon> Connected to network: {{getNetworkId}}
+            </div>
+            <div v-show="getNetworkId == ''">
+              <v-icon color="red">error</v-icon> Select a network
+            </div>
+          </v-flex>
+          <v-flex xs12 sm4 md4>
+            <div v-show="getWeb3DefaultAccount != ''">
+              <v-icon color="teal">check_circle</v-icon> Account: {{getWeb3DefaultAccount}}
+            </div>
+          <div v-show="getWeb3DefaultAccount == ''">
+              <v-icon color="red">error</v-icon> Select metamask account
+            </div>
+          </v-flex>
+          <!-- <v-flex xs12 sm4 md3>
+            <v-icon color="red">error</v-icon> Contracts not found
+          </v-flex> -->
+        </v-layout>
+      </div>
 
-							</v-stepper-content>
-						</v-stepper>
-					</v-list>
-				</v-card>
-			</v-dialog>
+      <v-fab-transition>
+        <v-btn
+        color="teal"
+        dark
+        fixed
+        bottom
+        right
+        fab
+        v-show="!statusPopup"
+        @click="statusPopup = !statusPopup"
+        >
+        <v-icon>cached</v-icon>
+        </v-btn>
+      </v-fab-transition>
 
-			<v-dialog v-model="loadingModal" persistent max-width="290">
-				<v-card>
-					<v-card-title class="headline">Please wait</v-card-title>
-					<v-card-text style="text-align: center;">
-						<v-progress-circular indeterminate v-bind:size="50" color="teal"></v-progress-circular>
-					</v-card-text>
-					<v-card-actions>
-						<v-spacer></v-spacer>
-					</v-card-actions>
-				</v-card>
-			</v-dialog>
-
-			<div v-show="statusPopup" class="dialog bottom-sheet bottom-sheet--inset dialog--active dialog--persistent"
-				style="background-color:white; max-width: 100% !important; -webkit-box-align: center;align-items: center;display: flex;/* height: 100%; */-webkit-box-pack: center;justify-content: center;left: 0px;position: fixed;bottom: 0px;transition: 0.3s ease-in-out;z-index: 6;outline: none;">
-				<div style="cursor: pointer; position:absolute; top:0; right:0;">
-					<v-icon @click="closeStatus()">clear</v-icon>
-				</div>
-				<v-layout style="padding:10px;" wrap row>
-					<v-flex xs12 sm4 md4>
-						<div v-show="getMetamaskInstalled">
-							<v-icon color="teal">check_circle</v-icon> Metamask installed
-						</div>
-						<div v-show="!getMetamaskInstalled">
-							<v-icon color="red">error</v-icon> Metamask not installed
-						</div>
-					</v-flex>
-					<v-flex xs12 sm4 md4>
-						<div v-show="getNetworkId != ''">
-							<v-icon color="teal">check_circle</v-icon> Connected to network: {{ getNetworkId }}
-						</div>
-						<div v-show="getNetworkId == ''">
-							<v-icon color="red">error</v-icon> Select a network
-						</div>
-					</v-flex>
-					<v-flex xs12 sm4 md4>
-						<div v-show="getWeb3DefaultAccount != ''">
-							<v-icon color="teal">check_circle</v-icon> Account: {{ getWeb3DefaultAccount }}
-						</div>
-						<div v-show="getWeb3DefaultAccount == ''">
-							<v-icon color="red">error</v-icon> Select metamask account
-						</div>
-					</v-flex>
-					<!-- <v-flex xs12 sm4 md3>
-									<v-icon color="red">error</v-icon> Contracts not found
-							</v-flex> -->
-				</v-layout>
-			</div>
-
-			<v-fab-transition>
-				<v-btn color="teal" dark fixed bottom right fab v-show="!statusPopup" @click="statusPopup = !statusPopup">
-					<v-icon>cached</v-icon>
-				</v-btn>
-			</v-fab-transition>
-
-		</v-content>
-	</v-app>
+    </v-main>
+  </v-app>
 </template>
+
 <script>
 import { useDisplay } from 'vuetify';
-import { uploadFileToIpfs } from './ipfs';
+import { uploadFileToIpfs } from '@/ipfs';
 import { useMetamask } from '@/composables/useMetamask';
-import store from './store';
+import store from '@/store';
+import BigNumber from '@/BNjs';
 
 export default {
 	data: () => ({
@@ -287,7 +325,8 @@ export default {
 		drawer: false,
 		offsetTop: 0,
 		// error handling
-		error: null
+		error: null,
+		id: store.getRandomInt()
 	}),
 	computed: {
 		networkReady() {
@@ -387,7 +426,9 @@ export default {
 				this.creatingAsset = true
 				this.createAssetError = null
 
-				this.$deedRepositoryInstance.setAccount(this.getWeb3DefaultAccount)
+				this.$deedRepositoryInstance.setAccount(store.getWeb3DefaultAccount())
+				console.log(this.deed.deedId)
+				
 				let transaction = await this.$deedRepositoryInstance.create(this.deed.deedId, this.deed.deedURI)
 
 				this.$deedRepositoryInstance.watchIfCreated((error, result) => {
@@ -440,7 +481,32 @@ export default {
 		 */
 		showAuction() {
 			// get random deedid
-			this.deed.deedId = store.getRandomInt('deed')
+			const randomPart1 = store.getRandomInt(123456789, 999999999);
+			const randomPart2 = store.getRandomInt(123456789, 999999999);
+			const combinedRandom = `${randomPart1}${randomPart2}`;
+			const deedIdBigNumber = BigNumber(combinedRandom);
+
+			this.deed.deedId = "0x" + deedIdBigNumber.toString(16);
+
+			// // Assuming you are using BigInt in JavaScript
+			// const randomPart1 = BigInt(store.getRandomInt(123456789, 999999999));
+			// const randomPart2 = BigInt(store.getRandomInt(123456789, 999999999));
+
+			// // Combine the two random numbers into one large BigInt
+			// const combinedRandom = randomPart1 * BigInt(10 ** 9) + randomPart2;  // Shifts randomPart1 to left by 9 digits
+
+			// // Ensure the value fits within uint256 range (though it's unlikely to exceed)
+			// const maxUint256 = BigInt("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+			// if (combinedRandom > maxUint256) {
+			// 		throw new Error("Value exceeds uint256 range");
+			// }
+
+			// // Convert BigInt to hexadecimal, and ensure it's 64 hex characters (256 bits)
+			// let deedIdHex = combinedRandom.toString(16);  // Convert to hex string
+			// deedIdHex = deedIdHex.padStart(64, '0');      // Zero-pad to 64 characters
+
+			// // Prepend '0x' to comply with Solidity's uint256 format
+			// this.deed.deedId = "0x" + deedIdHex;
 			this.dialog = true;
 		},
 
@@ -461,7 +527,15 @@ export default {
 				return localStorageItems
 			}
 			return false
-		}
+		},
+		auctionStatus(auc) {
+		// Logic to determine if auction is active, completed, or canceled
+			return auc.active ? 'Active' : 'Completed';
+		},
+		isAuctionOwner(auc){
+		// Logic to determine if auction is owned, completed, or canceled
+			return auc.active ? 'Active' : 'Completed';
+		},
 	},
 	setup() {
 		const { } = useMetamask();
@@ -484,7 +558,7 @@ export default {
 	}
 }
 </script>
-<style>
+<!-- <style>
 .pl-drawer ul {
 	background: none !important;
 }
@@ -568,7 +642,7 @@ export default {
 	font-size: 5em;
 	font-weight: 400;
 }
-</style>
+</style> -->
 
 
 

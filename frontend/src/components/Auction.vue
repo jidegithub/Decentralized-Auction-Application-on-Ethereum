@@ -252,6 +252,7 @@ Here is the updated Vue 3.7 version:
 
 <script>
 import moment from "moment";
+import store from '@/store'
 export default {
   data: () => ({
     auction: [],
@@ -274,13 +275,13 @@ export default {
     },
     isAuctionOwner(auction) {
       return (
-        auction.owner == this.$root.$data.globalState.getWeb3DefaultAccount()
+        auction.owner == store.getWeb3DefaultAccount()
       );
     },
     isLastBidder(auction) {
       return (
         auction.lastBidAccount ==
-        this.$root.$data.globalState.getWeb3DefaultAccount()
+        store.getWeb3DefaultAccount()
       );
     },
     auctionStatus(auction) {
@@ -291,7 +292,7 @@ export default {
       this.bidModal = false;
       this.loadingModal = true;
       this.$auctionRepoInstance.setAccount(
-        this.$root.$data.globalState.getWeb3DefaultAccount()
+        store.getWeb3DefaultAccount()
       );
       const result = await this.$auctionRepoInstance.bid(
         this.auction[0].id,
@@ -305,7 +306,7 @@ export default {
     async cancelAuction(auctionId) {
       this.loadingModal = true;
       this.$auctionRepoInstance.setAccount(
-        this.$root.$data.globalState.getWeb3DefaultAccount()
+        store.getWeb3DefaultAccount()
       );
       const result = await this.$auctionRepoInstance.cancel(auctionId);
       this.$auctionRepoInstance.watchIfCanceled((error, result) => {
@@ -316,7 +317,7 @@ export default {
     async finalizeAuction(auctionId) {
       this.loadingModal = true;
       this.$auctionRepoInstance.setAccount(
-        this.$root.$data.globalState.getWeb3DefaultAccount()
+        store.getWeb3DefaultAccount()
       );
       const result = await this.$auctionRepoInstance.finalize(auctionId);
       this.$auctionRepoInstance.watchIfFinalized((error, result) => {
@@ -340,7 +341,7 @@ export default {
         }
         this.joined = true;
         this.loading = true;
-        //this.$root.$data.globalState.joinChatRoom('test', this.identity) //0xffaadd11
+        //store.joinChatRoom('test', this.identity) //0xffaadd11
 
         this.$chatroomInstance.sendJoinEvent(this.identity, this.roomHex, "");
         this.$chatroomInstance.subscribeToTopic(this.roomHex, (data) => {

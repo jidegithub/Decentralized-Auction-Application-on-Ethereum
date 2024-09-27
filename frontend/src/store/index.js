@@ -35,8 +35,12 @@ const store = reactive({
     return this.metamask.metamaskInstalled;
   },
 
-  getRandomInt(prefix) {
-    return uniqid(`${prefix}-`);
+  // getRandomInt(prefix) {
+  //   if(prefix) return uniqid(`${prefix}-`);
+  //   return uniqid()
+  // }
+  getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min
   }
 });
 
