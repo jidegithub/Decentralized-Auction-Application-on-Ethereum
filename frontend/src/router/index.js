@@ -12,6 +12,11 @@ const routes = [
     component: () => import('@/views/AuctionView.vue'),
   },
   {
+    path: '/new/auction',
+    name: 'new auction',
+    component: () => import('@/views/CreateAuctionView.vue'),
+  },
+  {
     path: '/upload',
     name: 'upload',
     component: () => import('@/views/UploadView.vue'),

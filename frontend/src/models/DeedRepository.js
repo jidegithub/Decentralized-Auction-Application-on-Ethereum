@@ -36,13 +36,17 @@ export class DeedRepository {
   }
 
   async watchIfCreated(cb) {
-    const currentBlock = await this.getCurrentBlock()
-    this.contractInstance.events.DeedRegistered({
-      fromBlock: currentBlock - 1,
-      toBlock: 'latest'
-    })
-    .on('data', cb)
-    .on('error', console.error)
+    try {
+      const currentBlock = await this.getCurrentBlock();
+      this.contractInstance.events.DeedRegistered({
+        fromBlock: currentBlock - 1,
+        toBlock: 'latest'
+      })
+      .on('data', cb)
+      .on('error', console.error);
+    } catch (error) {
+      console.error('Error in watchIfCreated:', error);
+    }
   }
 
   async watchIfDeedTransferred(cb) {

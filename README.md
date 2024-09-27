@@ -14,6 +14,8 @@
   ### ipfs has 2 file system mutable file system(mfs) and ipfs content addressed storage(ipfs itself)
   ### mfs shows up on the ipfs webui
   ### you can add files to mfs by importing the file/directory from local or by importing the ipfs cid of the item
+
+  ### string is best for storing human-readable data like alphanumeric strings. It's more intuitive but slightly more expensive in terms of gas.
   
 
   ipfs files ls -list mfs files
