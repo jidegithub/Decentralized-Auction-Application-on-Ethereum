@@ -147,7 +147,6 @@
 <script>
   import { ref } from "vue";
   import moment from "moment";
-  import { useMetamask } from '@/composables/useMetamask';
   import store from "@/store";
 import { fetchAllFilesFromIpfsMFS, fetchFileFromIpfs } from "@/ipfs";
 import web3 from '@/web3'
@@ -173,15 +172,7 @@ import web3 from '@/web3'
         return assetUrl.href;
       }
     },
-    setup() {
-      const { metaMaskInstalled, web3DefaultAccount, networkId } = useMetamask();
-  
-      return {
-        metaMaskInstalled,
-        web3DefaultAccount,
-        networkId
-      };
-    },
+    setup() {},
     async mounted() {
       console.log('konto',this.konto)
 

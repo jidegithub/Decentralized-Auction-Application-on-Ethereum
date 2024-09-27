@@ -36,10 +36,16 @@ export function useMetamask() {
         });
     } else {
       metaMaskInstalled.value = false;
+      let web3Instance;
       // Fallback to local Ganache
-      const provider = new Web3.providers.HttpProvider("http://127.0.0.1:7545");
-      web3 = new Web3(provider);
-      console.log("Connected to local Ganache");
+      try {
+        const provider = new Web3.providers.HttpProvider("http://127.0.0.1:7545");
+        web3Instance = new Web3(provider);
+        console.log("Connected to local Ganache");
+      } catch (error) {
+        console.error("Failed to connect to Ganache:", error);
+      }
+      
       // Fetch Ganache accounts
       web3.eth.getAccounts()
         .then(accounts => {
