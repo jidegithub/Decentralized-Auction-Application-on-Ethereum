@@ -38,7 +38,7 @@
             </v-list-item>
           </v-list>
         </v-navigation-drawer>
-        <v-layout>
+        <v-layout style="display:block">
           <v-flex xs12 sm12 md12>
             <v-toolbar :class="transparentNav" class="peer-toolbar" fixed dark style="padding-top: 5px;">
               <v-app-bar-nav-icon @click="drawer = !drawer" style="position: fixed;" v-show="!this.mdAndUp"></v-app-bar-nav-icon>
@@ -125,7 +125,7 @@
               </v-stepper-step>
               <v-stepper-content step="2">
                 <v-card class="mb-5">
-                  <v-layout>
+                  <v-layout style="display:block">
                     <v-flex  style="height:100%; padding-bottom:20px;" xs12 sm12 md12>
                       <v-flex  style="height:100%; padding-bottom:20px;" xs12 sm12 md12>
                         <v-select v-model="selectedDeed" :items="deeds" label="Asset" ></v-select>
@@ -288,8 +288,7 @@ import { uploadFileToIpfs } from '@/ipfs';
 import { useMetamask } from '@/composables/useMetamask';
 import store from '@/store';
 import web3 from '@/web3'
-// import { BigNumber } from 'ethers';
-import { isAddress, BigNumber } from '@/ethers'
+import { BigNumber } from '@/ethers'
 
 export default {
 	data: () => ({
@@ -381,9 +380,10 @@ export default {
 			try {
 				this.transferringDeed = true
 				await this.$deedRepositoryInstance.initializeWeb3();
-				if(isAddress(this.$config.AUCTIONREPOSITORY_ADDRESS)){
-					const res = await this.$deedRepositoryInstance.transferTo(`${this.$config.AUCTIONREPOSITORY_ADDRESS.toString()}`, this.selectedDeed)
-				}
+				const res = await this.$deedRepositoryInstance.transferTo(
+					"0x4599308f90e6c3C1c6C23e3017BEBDCE14a76c22"
+					, this.selectedDeed)
+				
 				this.$deedRepositoryInstance.onDeedTransfer((result,error) => {
 					const transactionEventResult = result.event;
 					if (transactionEventResult.blockNumber && transactionEventResult.blockHash) {

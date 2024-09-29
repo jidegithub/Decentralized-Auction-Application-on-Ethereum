@@ -1,6 +1,7 @@
 import Config from '../config'
 import { ref } from 'vue';
 import { web3Provider } from '@/services/web-provider'
+import { isAddress } from '@/ethers'
 
 const newWeb3Provider = new web3Provider()
 const { getWeb3, getAccounts, getCurrentBlock, createContractInstance } = newWeb3Provider;
@@ -92,25 +93,55 @@ export class DeedRepository {
     }
   }
 
+  async _approveTransfer(to, deedId) {
+    try {
+      // Approve the contract to transfer the deed
+      const tx = await this.contractInstance.approve(to, deedId, {
+        gasLimit: this.gas // Set gas limit if needed
+      });
+  
+      console.log('Approval transaction hash:', tx.hash);
+  
+      // Wait for the approval transaction to be mined
+      const receipt = await tx.wait();
+      console.log('Approval mined in block', receipt.blockNumber);
+      return receipt;
+    } catch (error) {
+      console.error('Error in approving deed transfer:', error);
+      throw error;
+    }
+  }
+
   async transferTo(to, deedId) {
-    console.log('what i am passing as to',to)
-    console.log(this.contractInstance)
-    // try {
-    //   const tx = await this.contractInstance.transferFrom(this.account.value, to, deedId, {
-    //     gasLimit: this.gas // Set gas limit for the transaction
-    //   });
+    console.log('address -to',to)
+    console.log('address -this account value',this.account.value)
+    try {
+      const acountAddress = this.account.value[0]
+      // Ensure that both `to` and `this.account.value` are valid addresses
+      if (!isAddress(to) || !isAddress(acountAddress)) {
+        throw new Error("Invalid Ethereum address");
+      }
+
+      // Approve the transfer
+      const approvalReceipt = await this._approveTransfer(to, deedId);
+      console.log('Approval receipt:', approvalReceipt);
+
+      // Perform the transfer after approval
+      const tx = await this.contractInstance.transferFrom(acountAddress, to, deedId, {
+        gasLimit: this.gas // Set gas limit for the transaction if needed
+      });
+
+      console.log('Transaction hash:', tx.hash);
   
-    //   console.log('Transaction hash:', tx.hash);
-  
-    //   // Wait for the transaction to be mined
-    //   const receipt = await tx.wait();
-    //   console.log('Transaction mined in block', receipt.blockNumber);
+      // Wait for the transaction to be mined
+      const receipt = await tx.wait();
+      console.log('Transaction mined in block', receipt.blockNumber);
       
-    //   return receipt;
-    // } catch (error) {
-    //   console.error("Error transferring deed:", error);
-    //   throw error;
-    // }
+      return receipt;
+    } catch (error) {
+      console.error("Error transferring deed:", error);
+      throw error;
+    }
   }
   
 
