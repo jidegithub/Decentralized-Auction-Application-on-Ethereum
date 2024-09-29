@@ -29,11 +29,11 @@ export class AuctionRepository {
     )
   }
 
-  async getCurrentBlock() {
+  getCurrentBlock = async() => {
     return await getCurrentBlock()
   }
 
-  async watchIfCreated(cb) {
+  watchIfCreated = async(cb) => {
     try {
       const currentBlock = await this.getCurrentBlock()
       this.contractInstance.on("AuctionCreated", { fromBlock: currentBlock - 1, toBlock: 'latest' })
@@ -44,7 +44,7 @@ export class AuctionRepository {
     }
   }
 
-  async watchIfBidSuccess(cb) {
+  watchIfBidSuccess = async(cb) => {
     try {
       const currentBlock = await this.getCurrentBlock()
       this.contractInstance.on("BidSuccess", { fromBlock: currentBlock - 1, toBlock: 'latest' })
@@ -55,7 +55,7 @@ export class AuctionRepository {
     }
   }
 
-  async watchIfCanceled(cb) {
+  watchIfCanceled = async(cb) => {
     try {
       const currentBlock = await this.getCurrentBlock()
       this.contractInstance.on("AuctionCanceled", { fromBlock: currentBlock - 1, toBlock: 'latest' })
@@ -66,7 +66,7 @@ export class AuctionRepository {
     }
   }
 
-  async watchIfFinalized(cb) {
+  watchIfFinalized = async(cb) => {
     try {
       const currentBlock = await this.getCurrentBlock()
       this.contractInstance.on("AuctionFinalized", { fromBlock: currentBlock - 1, toBlock: 'latest' })
@@ -77,20 +77,20 @@ export class AuctionRepository {
     }
   }
 
-  async getCurrentBid(auctionId) {
-    return await this.contractInstance.methods.getCurrentBid(auctionId)
+  getCurrentBid = async(auctionId) => {
+    return await this.contractInstance.getCurrentBid(auctionId)
       .call({ from: this.account.value, gas: this.gas })
   }
 
-  async getBidCount(auctionId) {
-    return await this.contractInstance.methods.getBidsCount(auctionId)
+  getBidCount = async(auctionId) => {
+    return await this.contractInstance.getBidsCount(auctionId)
       .call({ from: this.account.value, gas: this.gas })
   }
 
-  async getCount() {
+  getCount = async() => {
     return new Promise(async (resolve, reject) => {
       try {
-        this.contractInstance.methods.getCount({ from: this.account.value, gas: this.gas }, (err, transaction) => {
+        this.contractInstance.getCount({ from: this.account.value, gas: this.gas }, (err, transaction) => {
           if (!err) resolve(transaction)
           else reject(err)
         })
@@ -100,15 +100,15 @@ export class AuctionRepository {
     })
   }
 
-  async bid(auctionId, price) {
+  bid = async(auctionId, price) => {
     const priceInWei = await toWei(price, 'ether')
-    return await this.contractInstance.methods.bidOnAuction(auctionId)
+    return await this.contractInstance.bidOnAuction(auctionId)
       .send({ from: this.account.value, gas: this.gas, value: priceInWei })
   }
 
-  async create(deedId, auctionTitle, metadata, startingPrice, endTime) {
+  create = async(deedId, auctionTitle, metadata, startingPrice, endTime) => {
     const priceInWei = await toWei(startingPrice, 'ether')
-    return await this.contractInstance.methods.createAuction(
+    return await this.contractInstance.createAuction(
       Config.DEEDREPOSITORY_ADDRESS,
       deedId,
       auctionTitle,
@@ -118,18 +118,18 @@ export class AuctionRepository {
     ).send({ from: this.account.value, gas: this.gas })
   }
 
-  async cancel(auctionId) {
-    return await this.contractInstance.methods.cancelAuction(auctionId)
+  cancel = async(auctionId) => {
+    return await this.contractInstance.cancelAuction(auctionId)
       .send({ from: this.account.value, gas: this.gas })
   }
 
-  async finalize(auctionId) {
-    return await this.contractInstance.methods.finalizeAuction(auctionId)
+  finalize = async(auctionId) => {
+    return await this.contractInstance.finalizeAuction(auctionId)
       .send({ from: this.account.value, gas: this.gas })
   }
 
-  async findById(auctionId) {
-    return await this.contractInstance.methods.getAuctionById(auctionId)
+  findById = async(auctionId) => {
+    return await this.contractInstance.getAuctionById(auctionId)
       .call({ from: this.account.value, gas: this.gas })
   }
 }

@@ -1,5 +1,4 @@
 import { reactive } from 'vue';
-import uniqid from 'uniqid';
 
 const store = reactive({
   metamask: {
@@ -34,14 +33,6 @@ const store = reactive({
   getMetamaskInstalled() {
     return this.metamask.metamaskInstalled;
   },
-
-  // getRandomInt(prefix) {
-  //   if(prefix) return uniqid(`${prefix}-`);
-  //   return uniqid()
-  // }
-  getRandomInt(min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min
-  }
 });
 
 export default store;

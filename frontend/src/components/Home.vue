@@ -145,6 +145,7 @@
   import { ref } from "vue";
   import moment from "moment";
   import store from "@/store";
+  import uniqid from 'uniqid';
 import { fetchAllFilesFromIpfsMFS, fetchFileFromIpfs } from "@/ipfs";
 import web3 from '@/web3'
 

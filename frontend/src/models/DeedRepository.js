@@ -52,19 +52,6 @@ export class DeedRepository {
     try {
       const currentBlock = await this.getCurrentBlock();
   
-      // Query past Transfer events from currentBlock - 1
-      const events = await this.contractInstance.queryFilter(
-        "Transfer",
-        currentBlock - 1,
-        "latest"
-      );
-  
-      // Process past events
-      events.forEach(event => {
-        console.log("Past Transfer event:", event);
-        cb(event);
-      });
-  
       // Listen for future Transfer events
       this.contractInstance.on("Transfer", (from, to, deedId, event) => {
         console.log("New Transfer event:", { from, to, deedId, event });

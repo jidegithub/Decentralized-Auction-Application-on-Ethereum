@@ -132,7 +132,7 @@
                       </v-flex>
                       <div v-show="transferDeedSuccess">
                         <v-icon color="teal">check_circle</v-icon> 
-                        <h3 style="color:green !important;">Ownership was successfully transfered</h3>
+                        <h3 style="color:green !important;">Ownership was successfully transferred</h3>
                       </div>
 
                       <div v-show="transferringDeed">
@@ -284,11 +284,12 @@
 
 <script>
 import { useDisplay } from 'vuetify';
-import { uploadFileToIpfs } from '@/ipfs';
+import uniqid from 'uniqid';
 import { useMetamask } from '@/composables/useMetamask';
 import store from '@/store';
 import web3 from '@/web3'
 import { BigNumber } from '@/ethers'
+import { uploadToIPFSInDirectory } from '../ipfs';
 
 export default {
 	data: () => ({
@@ -327,7 +328,7 @@ export default {
 		offsetTop: 0,
 		// error handling
 		error: null,
-		id: store.getRandomInt()
+		id: uniqid()
 	}),
 	computed: {
 		networkReady() {
@@ -396,7 +397,7 @@ export default {
 			}
 		},
 		/**
-		 * uploades the metadata of an auction to swarm and executes the smartcontract
+		 * uploades the metadata of an auction to ipfs and executes the smartcontract
 		 */
 		async uploadAndCreateAuction() {
 			try {
@@ -406,16 +407,23 @@ export default {
 				Object.keys(this.auction).map((key) => {
 					formData.append(key, this.auction[key])
 				})
-				const response = await uploadFileToIpfs(formData)
-				this.auction.metadata = response.body
+
+				const response = await uploadToIPFSInDirectory(formData)
+				this.auction.metadata = response.directoryCID
+				
+				// console.log('Directory Name:', response.directoryName);
+				// response.results.forEach((file) => {
+				// 	console.log('File added to IPFS with CID:', file.cid.toString());
+				// });
 
 				console.log(this.auction)
 
 				// create the smart contract
-				this.$auctionRepositoryInstance.setAccount(this.getWeb3DefaultAccount)
+				this.$auctionRepositoryInstance.initializeWeb3();
 				let transaction = await this.$auctionRepositoryInstance.create(this.auction.deedId, this.auction.auctionTitle, this.auction.metadata, this.auction.startingPrice, this.auction.timeInBlocks)
-				this.$auctionRepositoryInstance.watchIfCreated((error, result) => {
-					if (!error) {
+				this.$auctionRepositoryInstance.watchIfCreated((result,error) => {
+					const transactionEventResult = result.event;
+					if (transactionEventResult.blockNumber && transactionEventResult.blockHash) {
 						this.loadingModal = false
 						this.dialog = false
 						location.reload()
@@ -483,19 +491,14 @@ export default {
 		 * @return {int} 
 		 */
 		onScroll(e) {
-			this.offsetTop = window.pageYOffset || document.documentElement.scrollTop;
+			this.offsetTop = window.scrollY || document.documentElement.scrollTop;
 		},
 		/**
 		 * Show the auction dialog
 		 */
 		showAuction() {
 			// get random deedid
-			const randomPart1 = store.getRandomInt(123456789, 999999999);
-			const randomPart2 = store.getRandomInt(123456789, 999999999);
-			const combinedRandom = `${randomPart1}${randomPart2}`;
-			const deedIdBigNumber = BigNumber.from(combinedRandom);
-
-			console.log('app formed ether bigNumber',deedIdBigNumber)
+			const deedIdBigNumber = BigNumber.from(web3.utils.randomHex(32));
 
 			// Generate a random 32-byte (256-bit) hexadecimal number
 			const randomHex = BigInt(web3.utils.randomHex(32));
