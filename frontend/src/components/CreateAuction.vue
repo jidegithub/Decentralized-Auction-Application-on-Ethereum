@@ -287,8 +287,8 @@ import { useDisplay } from 'vuetify';
 import { uploadFileToIpfs } from '@/ipfs';
 import { useMetamask } from '@/composables/useMetamask';
 import store from '@/store';
-import BigNumber from '@/BNjs';
 import web3 from '@/web3'
+import { BigNumber } from 'ethers';
 
 export default {
 	data: () => ({
@@ -422,41 +422,83 @@ export default {
 		/**
 		 * registers a deed in the DeedRepository contract
 		 */
+		// async registerDeed() {
+		// 	try {
+		// 		this.creatingAsset = true
+		// 		this.createAssetError = null
+		// 		this.$deedRepositoryInstance.initializeWeb3()
+		// 		let transaction = await this.$deedRepositoryInstance.create(this.deed.deedId, this.deed.deedURI)
+		// 		this.$deedRepositoryInstance.watchIfCreated((error, result) => {
+		// 			// might get called multiple times
+		// 			if (this.createAssetSuccess) return
+		// 			// set GUI
+		// 			this.creatingAsset = false
+		// 			if (!error) {
+		// 				this.createAssetSuccess = true
+		// 			} else {
+		// 				console.error(error) // log the error for debugging
+		// 				this.createAssetError = `Couldn't verify asset creation process. Please try again`
+		// 			}
+
+		// 			// get the localstorage and push the new asset
+		// 			let localStorageItems = this.getLocalStorageItems()
+		// 			if (!localStorageItems.includes(this.deed.deedId)) {
+		// 				localStorageItems.push(this.deed.deedId)
+		// 			} else {
+		// 				localStorageItems = [this.deed.deedId]
+		// 			}
+		// 			localStorage.setItem('deeds', JSON.stringify(localStorageItems))
+
+		// 			this.deeds.push(this.deed.deedId)
+		// 		})
+		// 	} catch (e) {
+		// 		// unexpected error
+		// 		this.creatingAsset = false
+		// 		this.creatingAssetError = `An unexpected error occured: ${e.message}`
+		// 	}
+		// },
 		async registerDeed() {
 			try {
-				this.creatingAsset = true
-				this.createAssetError = null
-				this.$deedRepositoryInstance.setAccount(store.getWeb3DefaultAccount())
-				console.log('deed id before handover',this.deed.deedId)
-				let transaction = await this.$deedRepositoryInstance.create(this.deed.deedId, this.deed.deedURI)
+				this.creatingAsset = true;
+				this.createAssetError = null;
+
+				// Initialize web3 and handle potential errors
+				await this.$deedRepositoryInstance.initializeWeb3();
+
+				// Create the deed and await the transaction result
+				let transaction = await this.$deedRepositoryInstance.create(this.deed.deedId, this.deed.deedURI);
+
+				// Watch for the creation event
 				this.$deedRepositoryInstance.watchIfCreated((error, result) => {
-					// might get called multiple times
-					if (this.createAssetSuccess) return
-					// set GUI
-					this.creatingAsset = false
-					if (!error)
-						this.createAssetSuccess = true
-					else
-						this.creatingAssetError = `Couldn't verify asset creation process. Please try again`
+					// Prevent multiple executions
+					if (this.createAssetSuccess) return;
 
-					// get the localstorage and push the new asset
-					let localStorageItems = this.getLocalStorageItems()
-					if (localStorageItems) {
-						localStorageItems.push(this.deed.deedId)
+					// Update the GUI state based on success or error
+					this.creatingAsset = false;
+					if (!error) {
+						this.createAssetSuccess = true;
 					} else {
-						localStorageItems = [this.deed.deedId]
+						console.error(error); // Log error
+						this.createAssetError = `Couldn't verify asset creation process. Please try again`;
+						return; // Stop further processing on error
 					}
-					localStorage.setItem('deeds', JSON.stringify(localStorageItems))
 
-					this.deeds.push(this.deed.deedId)
-				})
+					// Handle localStorage for deeds
+					let localStorageItems = this.getLocalStorageItems() || [];
+					if (!localStorageItems.includes(this.deed.deedId)) {
+						localStorageItems.push(this.deed.deedId);
+					}
+					localStorage.setItem('deeds', JSON.stringify(localStorageItems));
+
+					// Add deed to the local deeds array
+					this.deeds.push(this.deed.deedId);
+				});
 			} catch (e) {
-				// unexpected error
-				this.creatingAsset = false
-				this.creatingAssetError = `An unexpected error occured: ${e.message}`
+				// Unexpected error handling
+				this.creatingAsset = false;
+				this.createAssetError = `An unexpected error occurred: ${e.message}`;
 			}
 		},
-
 		/**
 		 * Returns whether a status popup is active
 		 * @return {bool} 
@@ -464,7 +506,6 @@ export default {
 		closeStatus() {
 			this.statusPopup = false
 		},
-
 		/**
 		 * Returns the offset from top
 		 * @return {int} 
@@ -472,7 +513,6 @@ export default {
 		onScroll(e) {
 			this.offsetTop = window.pageYOffset || document.documentElement.scrollTop;
 		},
-
 		/**
 		 * Show the auction dialog
 		 */
@@ -481,8 +521,10 @@ export default {
 			const randomPart1 = store.getRandomInt(123456789, 999999999);
 			const randomPart2 = store.getRandomInt(123456789, 999999999);
 			const combinedRandom = `${randomPart1}${randomPart2}`;
-			const deedIdBigNumber = BigNumber(combinedRandom);
+			const deedIdBigNumber = BigNumber.from(combinedRandom);
 
+			console.log('app formed ether bigNumber',deedIdBigNumber)
+			
 			// Generate a random 32-byte (256-bit) hexadecimal number
 			const randomHex = BigInt(web3.utils.randomHex(32));
 
@@ -494,14 +536,12 @@ export default {
 			this.deed.deedId = encodedValue;
 			this.dialog = true;
 		},
-
 		/**
 		 * Event gets triggered when a file input is changed
 		 */
 		fileSelectionEvent(event) {
 			this.auction.fileInput = event.target.files[0]
 		},
-
 		/**
 		 * Gets the localstorage deed ids 
 		 */

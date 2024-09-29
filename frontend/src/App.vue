@@ -1,5 +1,11 @@
-<script setup>
+<script>
+  import { useMetamask } from '@/composables/useMetamask';
 
+  export default {
+    setup() {
+      useMetamask();
+    }
+  }
 </script>
 
 <template>

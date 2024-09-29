@@ -138,9 +138,6 @@
         </div>
       </v-flex>
     </v-layout>
-    {{networkId}}
-    {{web3DefaultAccount}}
-    {{metaMaskInstalled}}
   </div>
 </template>
 
@@ -159,7 +156,11 @@ import web3 from '@/web3'
       konto:ref(store.metamask),
       store,
     }),
-    computed: {},
+    computed: {
+      metaMaskInstalled(){
+        return store.getMetamaskInstalled()
+      }
+    },
     methods: {
       openAuction(id) {
         this.$router.push({ name: "Auction", params: { id: id } });
@@ -176,45 +177,45 @@ import web3 from '@/web3'
     async mounted() {
       console.log('konto',this.konto)
 
-      this.$auctionRepositoryInstance.setAccount(this.konto);
+      this.$auctionRepositoryInstance.initializeWeb3();
       console.log("auction instance",this.$auctionRepositoryInstance)
       
-      const ipfsAssetListings = await fetchAllFilesFromIpfsMFS();
-      console.log('ipfs',ipfsAssetListings)
+      // const ipfsAssetListings = await fetchAllFilesFromIpfsMFS();
+      // console.log('ipfs',ipfsAssetListings)
 
-      const assetListings = ipfsAssetListings.length; 
+      // const assetListings = ipfsAssetListings.length; 
       
-      // const count = await this.$auctionRepositoryInstance.getCount();
+      // // const count = await this.$auctionRepositoryInstance.getCount();
 
-      for (let i = 0; i < assetListings; i++) {
-        let auction = ipfsAssetListings[i];
-        let imageUrl;
+      // for (let i = 0; i < assetListings; i++) {
+      //   let auction = ipfsAssetListings[i];
+      //   let imageUrl;
         
-        if (ipfsAssetListings > 0) {
-          const metadata = auction;
-          console.log('metadata',metadata)
-          // Assuming the metadata JSON contains an object of file entries or directly a path for image
-          if (metadata.content) {
-            imageUrl = this.generateUrl(metadata.cid);
-          }
-        }
+      //   if (ipfsAssetListings > 0) {
+      //     const metadata = auction;
+      //     console.log('metadata',metadata)
+      //     // Assuming the metadata JSON contains an object of file entries or directly a path for image
+      //     if (metadata.content) {
+      //       imageUrl = this.generateUrl(metadata.cid);
+      //     }
+      //   }
 
-        this.auctions.push({
-          id: i,
-          image: imageUrl,
-          title: auction.name, 
-          expirationDate: moment(new Date(8.64e15).toString()).format(
-            "dddd, MMMM Do YYYY, h:mm:ss a"
-          ),
-          startingPrice: web3.utils.fromWei(600, "ether"),
-          metadata: auction.cid, // This CID points to the metadata stored on IPFS
-          deedId: '7076736734673'.toString(),
-          deedRepositoryAddress: "something",
-          owner: 'me',
-          active: true,
-          finalized: false
-        });
-      }
+      //   this.auctions.push({
+      //     id: i,
+      //     image: imageUrl,
+      //     title: auction.name, 
+      //     expirationDate: moment(new Date(8.64e15).toString()).format(
+      //       "dddd, MMMM Do YYYY, h:mm:ss a"
+      //     ),
+      //     startingPrice: web3.utils.fromWei(600, "ether"),
+      //     metadata: auction.cid, // This CID points to the metadata stored on IPFS
+      //     deedId: '7076736734673'.toString(),
+      //     deedRepositoryAddress: "something",
+      //     owner: 'me',
+      //     active: true,
+      //     finalized: false
+      //   });
+      // }
       this.loadingAuctions = false;
     },
   };

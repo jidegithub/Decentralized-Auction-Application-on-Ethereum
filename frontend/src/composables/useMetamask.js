@@ -1,7 +1,8 @@
 // composables/useMetamask.js
 import { ref, onMounted } from 'vue';
-import web3 from 'web3'
+import web3 from '@/web3'
 import store from '@/store'
+import Web3 from 'web3';
 
 export function useMetamask() {
   const metaMaskInstalled = ref(false);
@@ -69,6 +70,8 @@ export function useMetamask() {
     // Optionally, listen for account or network changes
     window.ethereum?.on('accountsChanged', (accounts) => {
       if (accounts.length > 0) {
+        metaMaskInstalled.value = true;
+        store.setMetamaskInstalled()
         const account = accounts[0];
         web3DefaultAccount.value = account;
         store.setWeb3DefaultAccount(account)

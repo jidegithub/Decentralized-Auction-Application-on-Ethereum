@@ -1,4 +1,4 @@
-Here's how you can update your Vue.js template to Vue 3.7. Several key changes involve modifying how Vuetify components are used and ensuring Vue 3's structure is maintained. I'll also update any deprecated Vuetify syntax:
+<!-- Here's how you can update your Vue.js template to Vue 3.7. Several key changes involve modifying how Vuetify components are used and ensuring Vue 3's structure is maintained. I'll also update any deprecated Vuetify syntax:
 
 1. Replace Vuetify's deprecated components and properties.
 2. Use `v-container`, `v-row`, and `v-col` instead of `v-layout` and `v-flex`.
@@ -7,7 +7,7 @@ Here's how you can update your Vue.js template to Vue 3.7. Several key changes i
 
 Here is the updated Vue 3.7 version:
 
-```vue
+```vue -->
 <template>
   <div>
     <v-container

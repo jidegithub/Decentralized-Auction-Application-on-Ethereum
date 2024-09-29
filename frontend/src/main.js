@@ -1,22 +1,24 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import Config from './config'
-import web3 from './web3'
+
+//import store
+import store from '@/store'
+// Import Vuetify and Router
+import vuetify from './plugins/vuetify' // Path to your Vuetify setup
+// Import Vuetify CSS (if needed for Vuetify)
+import 'vuetify/dist/vuetify.min.css'
+
+import router from './router' // Path to your Router setup
+
 
 // Import models
 // import { ChatRoom } from '../src/models/ChatRoom'
 import { DeedRepository } from '../src/models/DeedRepository'
 import { AuctionRepository } from '../src/models/AuctionRepository'
 
-// Import Vuetify and Router
-import vuetify from './plugins/vuetify' // Path to your Vuetify setup
-import router from './router' // Path to your Router setup
+import { web3Provider, web3Library } from '@/services/web-provider';
 
-// Import Vuetify CSS (if needed for Vuetify)
-import 'vuetify/dist/vuetify.min.css'
-
-//import store
-import store from '@/store'
 
 const app = createApp(App)
 
@@ -25,6 +27,8 @@ const app = createApp(App)
 const deedRepositoryInstance = new DeedRepository();
 const auctionRepositoryInstance = new AuctionRepository();
 // const chatRoomInstance = new chatRoom();
+const web3ProviderInstance = new web3Provider();
+const web3LibraryInstance = new web3Library();
 
 
 // Set up web3 and configurations for chatroom
@@ -32,15 +36,25 @@ const auctionRepositoryInstance = new AuctionRepository();
 
 // one instance of web3 available to all components
 if (typeof web3 !== 'undefined') {
-  auctionRepositoryInstance.setWeb3(web3);
-  deedRepositoryInstance.setWeb3(web3);
+  auctionRepositoryInstance.initializeWeb3();;
+  deedRepositoryInstance.initializeWeb3();
+}
+
+// Initialize the desired library here
+const useEthers = true;
+if (useEthers) {
+  web3ProviderInstance.initializeEthers();
+} else {
+  web3LibraryInstance.initializeWeb3();
 }
 
 // Make instances globally available via config.globalProperties
 app.config.globalProperties.$auctionRepositoryInstance = auctionRepositoryInstance;
 app.config.globalProperties.$deedRepositoryInstance = deedRepositoryInstance;
-app.config.globalProperties.$web3 = web3;
+app.config.globalProperties.$web3ProviderInstance = web3ProviderInstance;
+app.config.globalProperties.$web3LibraryInstance = web3LibraryInstance;
 app.config.globalProperties.$config = Config;
+
 
 // Use Vuetify and Vue Router in the app
 app.use(vuetify)
