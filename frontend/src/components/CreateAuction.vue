@@ -67,7 +67,7 @@
             <v-toolbar-title>New Auction</v-toolbar-title>
             <v-spacer></v-spacer>
             <v-toolbar-items>
-              <!-- <v-btn dark flat @click.native="dialog = false">Save</v-btn> -->
+              <v-btn dark flat @click.native="dialog = false">Close</v-btn>
             </v-toolbar-items>
           </v-toolbar>
           <v-divider></v-divider>
@@ -135,11 +135,11 @@
                         <h3 style="color:green !important;">Ownership was successfully transfered</h3>
                       </div>
 
-                      <div v-show="transferingDeed">
+                      <div v-show="transferringDeed">
                         <h3>Please wait while transfering ownership</h3>
                         <v-progress-linear v-bind:indeterminate="true"></v-progress-linear>
                       </div>
-                      <v-btn :disabled="selectedDeed==null || transferDeedSuccess || transferingDeed " @click="transferTo()" variant="outlined" color="teal">Transfer Ownership</v-btn>
+                      <v-btn :disabled="selectedDeed==null || transferDeedSuccess || transferringDeed " @click="transferTo()" variant="outlined" color="teal">Transfer Ownership</v-btn>
                       <v-btn v-show="transferDeedSuccess" variant="outlined" color="primary" @click="stepperIndex++">Next</v-btn>
                       <!-- <v-btn outline color="teal" @click="stepperIndex++">Skip</v-btn> -->
                     </v-flex>
@@ -179,14 +179,14 @@
                         persistent-hint
                         ></v-text-field>
                     </v-flex>
-                    <!-- <v-flex style="height:100%; padding-bottom:20px;" xs12 sm12 md12>
+                    <v-flex style="height:100%; padding-bottom:20px;" xs12 sm12 md12>
                       <v-text-field
                         v-model="auction.reservePrice"
                         placeholder="30 Ethers"
                         label="Reserve Price"
                         persistent-hint
                         ></v-text-field>
-                    </v-flex> -->
+                    </v-flex>
                     <v-flex style="height:100%; padding-bottom:20px;" xs12 sm6 md6>
                       <v-text-field
                         v-model="auction.timeInDays"
@@ -288,7 +288,8 @@ import { uploadFileToIpfs } from '@/ipfs';
 import { useMetamask } from '@/composables/useMetamask';
 import store from '@/store';
 import web3 from '@/web3'
-import { BigNumber } from 'ethers';
+// import { BigNumber } from 'ethers';
+import { isAddress, BigNumber } from '@/ethers'
 
 export default {
 	data: () => ({
@@ -300,7 +301,7 @@ export default {
 		// selected deed for transfer
 		selectedDeed: null,
 		transferDeedSuccess: false,
-		transferingDeed: false,
+		transferringDeed: false,
 		// deployed deeds
 		deeds: [],
 		// auction model
@@ -378,12 +379,17 @@ export default {
 	methods: {
 		async transferTo() {
 			try {
-				this.transferingDeed = true
-				this.$deedRepositoryInstance.setAccount(this.getWeb3DefaultAccount)
-				const res = await this.$deedRepositoryInstance.transferTo(this.$config.AUCTIONREPOSITORY_ADDRESS, this.selectedDeed)
-				this.$deedRepositoryInstance.watchIfDeedTransfered((error, result) => {
-					if (!error) this.transferDeedSuccess = true
-					this.transferingDeed = false
+				this.transferringDeed = true
+				await this.$deedRepositoryInstance.initializeWeb3();
+				if(isAddress(this.$config.AUCTIONREPOSITORY_ADDRESS)){
+					const res = await this.$deedRepositoryInstance.transferTo(`${this.$config.AUCTIONREPOSITORY_ADDRESS.toString()}`, this.selectedDeed)
+				}
+				this.$deedRepositoryInstance.onDeedTransfer((result,error) => {
+					const transactionEventResult = result.event;
+					if (transactionEventResult.blockNumber && transactionEventResult.blockHash) {
+						this.transferDeedSuccess = true
+						this.transferringDeed = false
+					}
 				})
 			} catch (e) {
 				alert('error transferring deed')
@@ -422,41 +428,6 @@ export default {
 		/**
 		 * registers a deed in the DeedRepository contract
 		 */
-		// async registerDeed() {
-		// 	try {
-		// 		this.creatingAsset = true
-		// 		this.createAssetError = null
-		// 		this.$deedRepositoryInstance.initializeWeb3()
-		// 		let transaction = await this.$deedRepositoryInstance.create(this.deed.deedId, this.deed.deedURI)
-		// 		this.$deedRepositoryInstance.watchIfCreated((error, result) => {
-		// 			// might get called multiple times
-		// 			if (this.createAssetSuccess) return
-		// 			// set GUI
-		// 			this.creatingAsset = false
-		// 			if (!error) {
-		// 				this.createAssetSuccess = true
-		// 			} else {
-		// 				console.error(error) // log the error for debugging
-		// 				this.createAssetError = `Couldn't verify asset creation process. Please try again`
-		// 			}
-
-		// 			// get the localstorage and push the new asset
-		// 			let localStorageItems = this.getLocalStorageItems()
-		// 			if (!localStorageItems.includes(this.deed.deedId)) {
-		// 				localStorageItems.push(this.deed.deedId)
-		// 			} else {
-		// 				localStorageItems = [this.deed.deedId]
-		// 			}
-		// 			localStorage.setItem('deeds', JSON.stringify(localStorageItems))
-
-		// 			this.deeds.push(this.deed.deedId)
-		// 		})
-		// 	} catch (e) {
-		// 		// unexpected error
-		// 		this.creatingAsset = false
-		// 		this.creatingAssetError = `An unexpected error occured: ${e.message}`
-		// 	}
-		// },
 		async registerDeed() {
 			try {
 				this.creatingAsset = true;
@@ -466,16 +437,17 @@ export default {
 				await this.$deedRepositoryInstance.initializeWeb3();
 
 				// Create the deed and await the transaction result
-				let transaction = await this.$deedRepositoryInstance.create(this.deed.deedId, this.deed.deedURI);
+				await this.$deedRepositoryInstance.create(this.deed.deedId, this.deed.deedURI);
 
 				// Watch for the creation event
-				this.$deedRepositoryInstance.watchIfCreated((error, result) => {
-					// Prevent multiple executions
-					if (this.createAssetSuccess) return;
+				this.$deedRepositoryInstance.onDeedRegistered((result,error) => {
+					const transactionEventResult = result.event;
+					// // Prevent multiple executions
+					// if (this.createAssetSuccess) return;
 
 					// Update the GUI state based on success or error
 					this.creatingAsset = false;
-					if (!error) {
+					if (transactionEventResult.blockNumber && transactionEventResult.blockHash) {
 						this.createAssetSuccess = true;
 					} else {
 						console.error(error); // Log error
@@ -524,7 +496,7 @@ export default {
 			const deedIdBigNumber = BigNumber.from(combinedRandom);
 
 			console.log('app formed ether bigNumber',deedIdBigNumber)
-			
+
 			// Generate a random 32-byte (256-bit) hexadecimal number
 			const randomHex = BigInt(web3.utils.randomHex(32));
 

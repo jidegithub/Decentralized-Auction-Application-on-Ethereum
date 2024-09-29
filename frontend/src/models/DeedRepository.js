@@ -29,7 +29,7 @@ export class DeedRepository {
     return getCurrentBlock()
   }
 
-  async watchIfCreated(cb) {
+  async onDeedRegistered(cb) {
     try {
       const currentBlock = await this.getCurrentBlock();
   
@@ -43,11 +43,11 @@ export class DeedRepository {
   
       console.log(`Listening for DeedRegistered events from block ${currentBlock}`);
     } catch (error) {
-      console.error('Error in watchIfCreated:', error);
+      console.error('Error in onDeedRegistered:', error);
     }
   }
   
-  async watchIfDeedTransferred(cb) {
+  async onDeedTransfer(cb) {
     try {
       const currentBlock = await this.getCurrentBlock();
   
@@ -93,22 +93,24 @@ export class DeedRepository {
   }
 
   async transferTo(to, deedId) {
-    try {
-      const tx = await this.contractInstance.transferFrom(this.account.value, to, deedId, {
-        gasLimit: this.gas // Set gas limit for the transaction
-      });
+    console.log('what i am passing as to',to)
+    console.log(this.contractInstance)
+    // try {
+    //   const tx = await this.contractInstance.transferFrom(this.account.value, to, deedId, {
+    //     gasLimit: this.gas // Set gas limit for the transaction
+    //   });
   
-      console.log('Transaction hash:', tx.hash);
+    //   console.log('Transaction hash:', tx.hash);
   
-      // Wait for the transaction to be mined
-      const receipt = await tx.wait();
-      console.log('Transaction mined in block', receipt.blockNumber);
+    //   // Wait for the transaction to be mined
+    //   const receipt = await tx.wait();
+    //   console.log('Transaction mined in block', receipt.blockNumber);
       
-      return receipt;
-    } catch (error) {
-      console.error("Error transferring deed:", error);
-      throw error;
-    }
+    //   return receipt;
+    // } catch (error) {
+    //   console.error("Error transferring deed:", error);
+    //   throw error;
+    // }
   }
   
 
@@ -122,7 +124,7 @@ export class DeedRepository {
         // The 'from' field is not needed as Ethers.js automatically uses the signer's address
       });
       
-      console.log('Transaction hash:', tx.hash);
+      // console.log('Transaction hash:', tx.hash);
   
       // Wait for the transaction to be mined
       const receipt = await tx.wait();
