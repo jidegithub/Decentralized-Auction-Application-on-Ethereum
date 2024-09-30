@@ -415,19 +415,18 @@ export default {
 				const response = await uploadToIPFSInDirectory(formData, "data-")
 				this.auction.metadata = response.directoryCID
 
-				console.log(this.auction)
+				// console.log(this.auction)
 
 				// create the smart contract
 				await this.$auctionRepositoryInstance.create(this.auction.deedId, this.auction.auctionTitle, this.auction.metadata, this.auction.startingPrice, this.auction.timeInBlocks)
 				console.log('post create')
 				this.$auctionRepositoryInstance.onAuctionCreated((result,error) => {
 					const transactionEventResult = result;
-					console.log(transactionEventResult)
-					// if (transactionEventResult.blockNumber && transactionEventResult.blockHash) {
-					// 	this.loadingModal = false
-					// 	this.dialog = false
-					// 	location.reload()
-					// }
+					if (transactionEventResult) {
+						this.loadingModal = false
+						this.dialog = false
+						location.reload()
+					}
 				})
 			} catch (e) {
 				this.error = e.message

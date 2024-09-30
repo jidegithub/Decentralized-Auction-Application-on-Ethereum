@@ -34,7 +34,7 @@ export class AuctionRepository {
   onAuctionCreated = async (cb) => {
     try {
       const currentBlock = await this.getCurrentBlock();
-      this.contractInstance.on('AuctionCreated', (event) => cb(event));
+      this.contractInstance.on('AuctionCreated', (account, event) => cb(account, event));
     } catch (error) {
       console.error('Error in onAuctionCreated:', error);
     }
