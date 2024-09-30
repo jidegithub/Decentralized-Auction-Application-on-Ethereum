@@ -1,27 +1,36 @@
 #!/bin/bash
 
-# # Initialize IPFS if not already initialized
-# if [ ! -d "$HOME/.ipfs" ]; then
-#   echo "Initializing IPFS..."
-#   ipfs init
-#   if [ $? -ne 0 ]; then
-#     echo "Error: Failed to initialize IPFS"
-#     exit 1
-#   fi
-# fi
+# Initialize IPFS if not already initialized
+if [ ! -d "$HOME/.ipfs" ]; then
+  echo "Initializing IPFS..."
+  ipfs init
+  if [ $? -ne 0 ]; then
+    echo "Error: Failed to initialize IPFS"
+    exit 1
+  fi
+fi
 
-# # Start IPFS daemon in the background
-# echo "Starting IPFS daemon..."
-# ipfs daemon &
-# IPFS_PID=$!
+# Start IPFS daemon in the background
+echo "Starting IPFS daemon..."
+nohup ipfs daemon & 
+IPFS_PID=$!
 
-# # Function to stop IPFS daemon on script exit or error
-# cleanup() {
-#   echo "Stopping IPFS daemon..."
-#   kill $IPFS_PID
-#   exit
-# }
-# trap cleanup EXIT
+# Start Ganache in the background
+echo "Starting Ganache..."
+nohup ./$current_dir/ganache.AppImage & 
+GANACHE_PID=$!
+
+# Function to stop IPFS daemon and Ganache on script exit or error
+cleanup() {
+  echo "Stopping IPFS daemon..."
+  kill $IPFS_PID
+  kill $GANACHE_PID
+  exit
+}
+trap cleanup EXIT
+
+echo "Taking a nap for 20 seconds..."
+sleep 20s
 
 # Set absolute paths
 current_dir=$PWD

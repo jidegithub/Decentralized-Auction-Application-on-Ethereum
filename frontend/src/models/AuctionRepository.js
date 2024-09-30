@@ -3,7 +3,7 @@ import { ref } from 'vue';
 import { web3Provider } from '@/services/web-provider';
 
 const newWeb3Provider = new web3Provider()
-const { getWeb3, getAccounts, getCurrentBlock, createContractInstance } = newWeb3Provider;
+const { getWeb3, getAccounts, getCurrentBlock, createContractInstance, toWei } = newWeb3Provider;
 
 export class AuctionRepository {
 
@@ -17,121 +17,143 @@ export class AuctionRepository {
   }
 
   initializeWeb3 = async() => {
-    this.web3 = await getWeb3().then(async(result) => {
-      this.account.value = (await getAccounts())[0]
-    }).catch((error) => {
-      console.error('Error initializing web3 or getting accounts:', error);
-    });
-    
+    this.web3 = await getWeb3()
+    this.account.value = await getAccounts()
     this.contractInstance = await createContractInstance(
       Config.AUCTIONREPOSITORY_ABI,
       Config.AUCTIONREPOSITORY_ADDRESS
     )
   }
 
-  getCurrentBlock = async() => {
-    return await getCurrentBlock()
-  }
+  // Get current block number
+  getCurrentBlock = async () => {
+    return getCurrentBlock()
+  };
 
-  watchIfCreated = async(cb) => {
+  // Event listener for AuctionCreated
+  onAuctionCreated = async (cb) => {
     try {
-      const currentBlock = await this.getCurrentBlock()
-      this.contractInstance.on("AuctionCreated", { fromBlock: currentBlock - 1, toBlock: 'latest' })
-        .on('data', cb)
-        .on('error', console.error)
+      const currentBlock = await this.getCurrentBlock();
+      this.contractInstance.on('AuctionCreated', (event) => cb(event));
     } catch (error) {
-      console.error('Error in watchIfCreated:', error)
+      console.error('Error in onAuctionCreated:', error);
     }
-  }
+  };
 
-  watchIfBidSuccess = async(cb) => {
+  // Event listener for BidSuccess
+  onBidSuccess = async (cb) => {
     try {
-      const currentBlock = await this.getCurrentBlock()
-      this.contractInstance.on("BidSuccess", { fromBlock: currentBlock - 1, toBlock: 'latest' })
-        .on('data', cb)
-        .on('error', console.error)
+      const currentBlock = await this.getCurrentBlock();
+      this.contractInstance.on('BidSuccess', (event) => cb(event));
     } catch (error) {
-      console.error('Error in watchIfBidSuccess:', error)
+      console.error('Error in onBidSuccess:', error);
     }
-  }
+  };
 
-  watchIfCanceled = async(cb) => {
+  // Event listener for AuctionCanceled
+  onAuctionCanceled = async (cb) => {
     try {
-      const currentBlock = await this.getCurrentBlock()
-      this.contractInstance.on("AuctionCanceled", { fromBlock: currentBlock - 1, toBlock: 'latest' })
-        .on('data', cb)
-        .on('error', console.error)
+      const currentBlock = await this.getCurrentBlock();
+      this.contractInstance.on('AuctionCanceled', (event) => cb(event));
     } catch (error) {
-      console.error('Error in watchIfCanceled:', error)
+      console.error('Error in onAuctionCanceled:', error);
     }
-  }
+  };
 
-  watchIfFinalized = async(cb) => {
+  // Event listener for AuctionFinalized
+  onAuctionFinalized = async (cb) => {
     try {
-      const currentBlock = await this.getCurrentBlock()
-      this.contractInstance.on("AuctionFinalized", { fromBlock: currentBlock - 1, toBlock: 'latest' })
-        .on('data', cb)
-        .on('error', console.error)
+      const currentBlock = await this.getCurrentBlock();
+      this.contractInstance.on('AuctionFinalized', (event) => cb(event));
     } catch (error) {
-      console.error('Error in watchIfFinalized:', error)
+      console.error('Error in onAuctionFinalized:', error);
     }
-  }
+  };
 
-  getCurrentBid = async(auctionId) => {
-    return await this.contractInstance.getCurrentBid(auctionId)
-      .call({ from: this.account.value, gas: this.gas })
-  }
+  // Get the current bid for an auction
+  getCurrentBid = async (auctionId) => {
+    try {
+      return await this.contractInstance.getCurrentBid(auctionId);
+    } catch (error) {
+      console.error('Error getting current bid:', error);
+    }
+  };
 
-  getBidCount = async(auctionId) => {
-    return await this.contractInstance.getBidsCount(auctionId)
-      .call({ from: this.account.value, gas: this.gas })
-  }
+  // Get the bid count for an auction
+  getBidCount = async (auctionId) => {
+    try {
+      return await this.contractInstance.getBidsCount(auctionId);
+    } catch (error) {
+      console.error('Error getting bid count:', error);
+    }
+  };
 
-  getCount = async() => {
-    return new Promise(async (resolve, reject) => {
-      try {
-        this.contractInstance.getCount({ from: this.account.value, gas: this.gas }, (err, transaction) => {
-          if (!err) resolve(transaction)
-          else reject(err)
-        })
-      } catch (e) {
-        reject(e)
-      }
-    })
-  }
+  // Get the total auction count
+  getCount = async () => {
+    try {
+      return await this.contractInstance.getCount();
+    } catch (error) {
+      console.error('Error getting auction count:', error);
+    }
+  };
 
-  bid = async(auctionId, price) => {
-    const priceInWei = await toWei(price, 'ether')
-    return await this.contractInstance.bidOnAuction(auctionId)
-      .send({ from: this.account.value, gas: this.gas, value: priceInWei })
-  }
+  // Place a bid on an auction
+  bid = async (auctionId, price) => {
+    try {
+      const priceInWei = await toWei(price, 'ether');
+      return await this.contractInstance.bidOnAuction(auctionId, {
+        value: priceInWei,
+        gasLimit: this.gas
+      });
+    } catch (error) {
+      console.error('Error placing bid:', error);
+    }
+  };
 
-  create = async(deedId, auctionTitle, metadata, startingPrice, endTime) => {
-    const priceInWei = await toWei(startingPrice, 'ether')
-    return await this.contractInstance.createAuction(
-      Config.DEEDREPOSITORY_ADDRESS,
-      deedId,
-      auctionTitle,
-      metadata,
-      priceInWei,
-      endTime
-    ).send({ from: this.account.value, gas: this.gas })
-  }
+  // Create a new auction
+  create = async (deedId, auctionTitle, metadata, startingPrice, endTime) => {
+    try {
+      const priceInWei = await toWei(startingPrice, 'ether');
+      return await this.contractInstance.createAuction(
+        Config.DEEDREPOSITORY_ADDRESS,
+        deedId,
+        auctionTitle,
+        metadata,
+        priceInWei,
+        endTime,
+        { gasLimit: this.gas }
+      );
+    } catch (error) {
+      console.error('Error creating auction:', error);
+    }
+  };
 
-  cancel = async(auctionId) => {
-    return await this.contractInstance.cancelAuction(auctionId)
-      .send({ from: this.account.value, gas: this.gas })
-  }
+  // Cancel an auction
+  cancel = async (auctionId) => {
+    try {
+      return await this.contractInstance.cancelAuction(auctionId, { gasLimit: this.gas });
+    } catch (error) {
+      console.error('Error canceling auction:', error);
+    }
+  };
 
-  finalize = async(auctionId) => {
-    return await this.contractInstance.finalizeAuction(auctionId)
-      .send({ from: this.account.value, gas: this.gas })
-  }
+  // Finalize an auction
+  finalize = async (auctionId) => {
+    try {
+      return await this.contractInstance.finalizeAuction(auctionId, { gasLimit: this.gas });
+    } catch (error) {
+      console.error('Error finalizing auction:', error);
+    }
+  };
 
-  findById = async(auctionId) => {
-    return await this.contractInstance.getAuctionById(auctionId)
-      .call({ from: this.account.value, gas: this.gas })
-  }
+  // Find auction by ID
+  findById = async (auctionId) => {
+    try {
+      return await this.contractInstance.getAuctionById(auctionId);
+    } catch (error) {
+      console.error('Error finding auction by ID:', error);
+    }
+  };
 }
 
 

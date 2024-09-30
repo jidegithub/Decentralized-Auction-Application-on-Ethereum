@@ -289,7 +289,8 @@ import { useMetamask } from '@/composables/useMetamask';
 import store from '@/store';
 import web3 from '@/web3'
 import { BigNumber } from '@/ethers'
-import { uploadToIPFSInDirectory } from '../ipfs';
+import { uploadToIPFSInDirectory } from '@/ipfs';
+import Config from '@/config';
 
 export default {
 	data: () => ({
@@ -382,7 +383,7 @@ export default {
 				this.transferringDeed = true
 				await this.$deedRepositoryInstance.initializeWeb3();
 				const res = await this.$deedRepositoryInstance.transferTo(
-					"0x4599308f90e6c3C1c6C23e3017BEBDCE14a76c22"
+					Config.AUCTIONREPOSITORY_ADDRESS
 					, this.selectedDeed)
 				
 				this.$deedRepositoryInstance.onDeedTransfer((result,error) => {
@@ -402,32 +403,31 @@ export default {
 		async uploadAndCreateAuction() {
 			try {
 				this.loadingModal = true
+
+				this.$auctionRepositoryInstance.initializeWeb3();
+
 				// create form data and attach the auction property
 				let formData = new FormData()
 				Object.keys(this.auction).map((key) => {
 					formData.append(key, this.auction[key])
 				})
 
-				const response = await uploadToIPFSInDirectory(formData)
+				const response = await uploadToIPFSInDirectory(formData, "data-")
 				this.auction.metadata = response.directoryCID
-				
-				// console.log('Directory Name:', response.directoryName);
-				// response.results.forEach((file) => {
-				// 	console.log('File added to IPFS with CID:', file.cid.toString());
-				// });
 
 				console.log(this.auction)
 
 				// create the smart contract
-				this.$auctionRepositoryInstance.initializeWeb3();
-				let transaction = await this.$auctionRepositoryInstance.create(this.auction.deedId, this.auction.auctionTitle, this.auction.metadata, this.auction.startingPrice, this.auction.timeInBlocks)
-				this.$auctionRepositoryInstance.watchIfCreated((result,error) => {
-					const transactionEventResult = result.event;
-					if (transactionEventResult.blockNumber && transactionEventResult.blockHash) {
-						this.loadingModal = false
-						this.dialog = false
-						location.reload()
-					}
+				await this.$auctionRepositoryInstance.create(this.auction.deedId, this.auction.auctionTitle, this.auction.metadata, this.auction.startingPrice, this.auction.timeInBlocks)
+				console.log('post create')
+				this.$auctionRepositoryInstance.onAuctionCreated((result,error) => {
+					const transactionEventResult = result;
+					console.log(transactionEventResult)
+					// if (transactionEventResult.blockNumber && transactionEventResult.blockHash) {
+					// 	this.loadingModal = false
+					// 	this.dialog = false
+					// 	location.reload()
+					// }
 				})
 			} catch (e) {
 				this.error = e.message
